@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="KrisMoon" package="com.sample.project" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="KrisMoon" />
+	
+	<source path="Source" />
+	<!-- <window width="640" height="400" background="#FFFFFF" fps="60"/> -->
+	
+	<window fps="60" background="#FFFFFF" />
+	<window width="0" height="0" if="html5" />
+
+
+	<haxelib name="openfl" />
+	<haxelib name="actuate" />
+	<haxelib name="nape" />
+
+	
+	<assets path="Assets" rename="assets" exclude="*.svg" />
+	<icon path="Assets/openfl.svg" />
+	
+</project>

@@ -1,0 +1,24 @@
+-main ApplicationMain 
+-cp /usr/lib/haxe/lib/openfl/2,1,6
+-D openfl=2.1.6
+-cp /usr/lib/haxe/lib/hxcpp/3,1,39
+-D hxcpp=3.1.39
+-cp /usr/lib/haxe/lib/actuate/1,7,5
+-D actuate=1.7.5
+-cp /usr/lib/haxe/lib/nape/2,0,16
+-D nape=2.0.16
+-cp Source
+-cp /usr/lib/haxe/lib/lime/2,0,0-beta/legacy
+-D tools=2.0.0-beta
+-D lime-legacy
+-D no-compilation
+-D native
+-D openfl-native
+-D lime-native
+-D mac
+-D desktop
+--remap flash:openfl
+-cpp Export/mac64/cpp/obj/
+-cp Export/mac64/cpp/haxe
+--macro keep("Main")
+-debug
