@@ -6,6 +6,8 @@ import nape.phys.BodyType;
 import nape.space.Space;
 import nape.util.Debug;
 import nape.util.ShapeDebug;
+import flash.events.Event;
+import flash.events.KeyboardEvent;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import openfl.Assets;

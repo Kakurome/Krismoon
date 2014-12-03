@@ -1,11 +1,11 @@
 -main ApplicationMain 
--cp /usr/lib/haxe/lib/openfl/2,1,6
+-cp C:/HaxeToolkit/haxe/lib/openfl/2,1,6
 -D openfl=2.1.6
--cp /usr/lib/haxe/lib/lime/2,0,0-beta
+-cp C:/HaxeToolkit/haxe/lib/lime/2,0,0-beta
 -D lime=2.0.0-beta
--cp /usr/lib/haxe/lib/actuate/1,7,5
+-cp C:/HaxeToolkit/haxe/lib/actuate/1,7,5
 -D actuate=1.7.5
--cp /usr/lib/haxe/lib/nape/2,0,16
+-cp C:/HaxeToolkit/haxe/lib/nape/2,0,16
 -D nape=2.0.16
 -cp Source
 -D lime-openal

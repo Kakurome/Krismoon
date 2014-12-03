@@ -516,6 +516,7 @@ openfl_display_DisplayObject.prototype = $extend(openfl_events_EventDispatcher.p
 		return this.__y = value;
 	}
 	,__class__: openfl_display_DisplayObject
+	,__properties__: {set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x",set_width:"set_width",get_width:"get_width",set_visible:"set_visible",get_visible:"get_visible",set_transform:"set_transform",get_transform:"get_transform",set_scrollRect:"set_scrollRect",get_scrollRect:"get_scrollRect",set_scaleY:"set_scaleY",get_scaleY:"get_scaleY",set_scaleX:"set_scaleX",get_scaleX:"get_scaleX",set_rotation:"set_rotation",get_rotation:"get_rotation",get_root:"get_root",set_name:"set_name",get_name:"get_name",get_mouseY:"get_mouseY",get_mouseX:"get_mouseX",set_mask:"set_mask",get_mask:"get_mask",set_height:"set_height",get_height:"get_height",set_filters:"set_filters",get_filters:"get_filters",set_alpha:"set_alpha",get_alpha:"get_alpha"}
 });
 var openfl_display_InteractiveObject = function() {
 	openfl_display_DisplayObject.call(this);
@@ -824,6 +825,7 @@ openfl_display_DisplayObjectContainer.prototype = $extend(openfl_display_Interac
 		return this.__children.length;
 	}
 	,__class__: openfl_display_DisplayObjectContainer
+	,__properties__: $extend(openfl_display_InteractiveObject.prototype.__properties__,{get_numChildren:"get_numChildren"})
 });
 var openfl_display_Sprite = function() {
 	openfl_display_DisplayObjectContainer.call(this);
@@ -876,45 +878,55 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 		return this.__graphics;
 	}
 	,__class__: openfl_display_Sprite
+	,__properties__: $extend(openfl_display_DisplayObjectContainer.prototype.__properties__,{get_graphics:"get_graphics"})
 });
 var Main = function() {
 	this.space = new nape_space_Space();
+	this.hexas = new Array();
 	openfl_display_Sprite.call(this);
 	this.init();
 };
 $hxClasses["Main"] = Main;
 Main.__name__ = ["Main"];
-Main.main = function() {
-	openfl_Lib.current.stage.addChild(new Main());
-};
 Main.__super__ = openfl_display_Sprite;
 Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	init: function() {
-		this.get_graphics().beginFill(3500014);
-		this.drawOneHexa(100,100,20);
+		var _g1 = 0;
+		var _g = Main.NUM_ROWS;
+		while(_g1 < _g) {
+			var row = _g1++;
+			this.hexas[row] = new Array();
+			var _g3 = 0;
+			var _g2 = Main.NUM_COLUMNS;
+			while(_g3 < _g2) {
+				var column = _g3++;
+				this.hexas[row][column] = null;
+			}
+		}
+		this.drawHexagones(Main.NUM_ROWS,Main.NUM_COLUMNS,this.stage.stageWidth - 100 | 0,this.stage.stageHeight - 100 | 0);
 	}
 	,drawHexagones: function(mapx,mapy,w,h) {
+		var radius = 45;
+		var xhexa;
+		var yhexa;
 		var _g = 0;
 		while(_g < mapx) {
 			var i = _g++;
 			var _g1 = 0;
 			while(_g1 < mapy) {
 				var j = _g1++;
-				var radius = mapx / w | 0;
-				this.drawOneHexa(i * radius * 2,j * radius * 2,radius);
+				if(j % 2 == 0) {
+					xhexa = i * radius * 2 * Math.sqrt(3) / 2 + radius * 2;
+					yhexa = j * radius * 2 * 3 / 4 + radius * 2;
+				} else {
+					xhexa = i * radius * 2 * Math.sqrt(3) / 2 + radius * 2 + radius - 2 * radius / 15;
+					yhexa = j * radius * 2 * 3 / 4 + radius * 2;
+				}
+				var hexa = new Case(i,j,11141120 + j * 1000 + i * 10000);
+				hexa.drawOneHexa(xhexa,yhexa,radius);
+				this.addChild(hexa);
+				this.hexas[i][j] = hexa;
 			}
-		}
-	}
-	,drawOneHexa: function(x,y,radius) {
-		var _g = 0;
-		while(_g < 6) {
-			var i = _g++;
-			this.get_graphics().beginFill(65280);
-			var angle = 2 * Math.PI / 6 * (i + 0.5);
-			var x_i = x + radius * Math.cos(angle);
-			var y_i = y + radius * Math.sin(angle);
-			this.get_graphics().lineStyle(1,0);
-			if(i == 0) this.get_graphics().moveTo(x_i,y_i); else this.get_graphics().lineTo(x_i,y_i);
 		}
 	}
 	,__class__: Main
@@ -929,6 +941,32 @@ DocumentClass.__name__ = ["DocumentClass"];
 DocumentClass.__super__ = Main;
 DocumentClass.prototype = $extend(Main.prototype,{
 	__class__: DocumentClass
+});
+var Case = function(x,y,color) {
+	if(color == null) color = 2236962;
+	openfl_display_Sprite.call(this);
+	this.ligne = x;
+	this.colonne = y;
+	this.couleur = color;
+	this.groupe = 1;
+};
+$hxClasses["Case"] = Case;
+Case.__name__ = ["Case"];
+Case.__super__ = openfl_display_Sprite;
+Case.prototype = $extend(openfl_display_Sprite.prototype,{
+	drawOneHexa: function(x,y,radius) {
+		this.get_graphics().lineStyle(1,0);
+		this.get_graphics().beginFill(this.couleur);
+		var _g = 0;
+		while(_g < 6) {
+			var i = _g++;
+			var angle = 2 * Math.PI / 6 * (i + 0.5);
+			var x_i = x + radius * Math.cos(angle);
+			var y_i = y + radius * Math.sin(angle);
+			if(i == 0) this.get_graphics().moveTo(x_i | 0,y_i | 0); else this.get_graphics().lineTo(x_i | 0,y_i | 0);
+		}
+	}
+	,__class__: Case
 });
 var lime_AssetLibrary = function() {
 };
@@ -1211,6 +1249,14 @@ Reflect.field = function(o,field) {
 };
 Reflect.setField = function(o,field,value) {
 	o[field] = value;
+};
+Reflect.getProperty = function(o,field) {
+	var tmp;
+	if(o == null) return null; else if(o.__properties__ && (tmp = o.__properties__["get_" + field])) return o[tmp](); else return o[field];
+};
+Reflect.setProperty = function(o,field,value) {
+	var tmp;
+	if(o.__properties__ && (tmp = o.__properties__["set_" + field])) o[tmp](value); else o[field] = value;
 };
 Reflect.callMethod = function(o,func,args) {
 	return func.apply(o,args);
@@ -1676,6 +1722,49 @@ haxe_ds_IntMap.__name__ = ["haxe","ds","IntMap"];
 haxe_ds_IntMap.__interfaces__ = [IMap];
 haxe_ds_IntMap.prototype = {
 	__class__: haxe_ds_IntMap
+};
+var haxe_ds_ObjectMap = function() {
+	this.h = { };
+	this.h.__keys__ = { };
+};
+$hxClasses["haxe.ds.ObjectMap"] = haxe_ds_ObjectMap;
+haxe_ds_ObjectMap.__name__ = ["haxe","ds","ObjectMap"];
+haxe_ds_ObjectMap.__interfaces__ = [IMap];
+haxe_ds_ObjectMap.prototype = {
+	set: function(key,value) {
+		var id = key.__id__ || (key.__id__ = ++haxe_ds_ObjectMap.count);
+		this.h[id] = value;
+		this.h.__keys__[id] = key;
+	}
+	,get: function(key) {
+		return this.h[key.__id__];
+	}
+	,exists: function(key) {
+		return this.h.__keys__[key.__id__] != null;
+	}
+	,remove: function(key) {
+		var id = key.__id__;
+		if(this.h.__keys__[id] == null) return false;
+		delete(this.h[id]);
+		delete(this.h.__keys__[id]);
+		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h.__keys__ ) {
+		if(this.h.hasOwnProperty(key)) a.push(this.h.__keys__[key]);
+		}
+		return HxOverrides.iter(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i.__id__];
+		}};
+	}
+	,__class__: haxe_ds_ObjectMap
 };
 var haxe_ds_StringMap = function() {
 	this.h = { };
@@ -2546,6 +2635,7 @@ lime_app_Application.prototype = $extend(lime_app_Module.prototype,{
 		return this.windows[0];
 	}
 	,__class__: lime_app_Application
+	,__properties__: {get_window:"get_window"}
 });
 var lime_app__$Application_UpdateEventType_$Impl_$ = function() { };
 $hxClasses["lime.app._Application.UpdateEventType_Impl_"] = lime_app__$Application_UpdateEventType_$Impl_$;
@@ -3181,6 +3271,7 @@ lime_audio_AudioSource.prototype = {
 		return value;
 	}
 	,__class__: lime_audio_AudioSource
+	,__properties__: {set_timeOffset:"set_timeOffset",get_timeOffset:"get_timeOffset",set_gain:"set_gain",get_gain:"get_gain"}
 };
 var lime_audio_FlashAudioContext = function() {
 };
@@ -4358,6 +4449,7 @@ lime_graphics_Image.prototype = {
 		return this.buffer.transparent = value;
 	}
 	,__class__: lime_graphics_Image
+	,__properties__: {set_transparent:"set_transparent",get_transparent:"get_transparent",set_src:"set_src",get_src:"get_src",get_rect:"get_rect",set_premultiplied:"set_premultiplied",get_premultiplied:"get_premultiplied",set_powerOfTwo:"set_powerOfTwo",get_powerOfTwo:"get_powerOfTwo",set_data:"set_data",get_data:"get_data"}
 };
 var lime_graphics_ImageChannel = $hxClasses["lime.graphics.ImageChannel"] = { __ename__ : true, __constructs__ : ["RED","GREEN","BLUE","ALPHA"] };
 lime_graphics_ImageChannel.RED = ["RED",0];
@@ -4404,6 +4496,7 @@ lime_graphics_ImageBuffer.prototype = {
 		return value;
 	}
 	,__class__: lime_graphics_ImageBuffer
+	,__properties__: {set_src:"set_src",get_src:"get_src"}
 };
 var lime_graphics_ImageType = $hxClasses["lime.graphics.ImageType"] = { __ename__ : true, __constructs__ : ["CANVAS","DATA","FLASH","CUSTOM"] };
 lime_graphics_ImageType.CANVAS = ["CANVAS",0];
@@ -4492,6 +4585,7 @@ lime_graphics__$Renderer_RenderEventType_$Impl_$.__name__ = ["lime","graphics","
 var lime_graphics_opengl_GL = function() { };
 $hxClasses["lime.graphics.opengl.GL"] = lime_graphics_opengl_GL;
 lime_graphics_opengl_GL.__name__ = ["lime","graphics","opengl","GL"];
+lime_graphics_opengl_GL.__properties__ = {get_version:"get_version"}
 lime_graphics_opengl_GL.version = null;
 lime_graphics_opengl_GL.context = null;
 lime_graphics_opengl_GL.activeTexture = function(texture) {
@@ -5484,6 +5578,7 @@ lime_graphics_utils_ImageDataUtil.unmultiplyAlpha = function(image) {
 var lime_math__$ColorMatrix_ColorMatrix_$Impl_$ = function() { };
 $hxClasses["lime.math._ColorMatrix.ColorMatrix_Impl_"] = lime_math__$ColorMatrix_ColorMatrix_$Impl_$;
 lime_math__$ColorMatrix_ColorMatrix_$Impl_$.__name__ = ["lime","math","_ColorMatrix","ColorMatrix_Impl_"];
+lime_math__$ColorMatrix_ColorMatrix_$Impl_$.__properties__ = {set_redOffset:"set_redOffset",get_redOffset:"get_redOffset",set_redMultiplier:"set_redMultiplier",get_redMultiplier:"get_redMultiplier",set_greenOffset:"set_greenOffset",get_greenOffset:"get_greenOffset",set_greenMultiplier:"set_greenMultiplier",get_greenMultiplier:"get_greenMultiplier",set_color:"set_color",get_color:"get_color",set_blueOffset:"set_blueOffset",get_blueOffset:"get_blueOffset",set_blueMultiplier:"set_blueMultiplier",get_blueMultiplier:"get_blueMultiplier",set_alphaOffset:"set_alphaOffset",get_alphaOffset:"get_alphaOffset",set_alphaMultiplier:"set_alphaMultiplier",get_alphaMultiplier:"get_alphaMultiplier"}
 lime_math__$ColorMatrix_ColorMatrix_$Impl_$._new = function(data) {
 	var this1;
 	if(data != null && data.length == 20) this1 = data; else this1 = new Float32Array(lime_math__$ColorMatrix_ColorMatrix_$Impl_$.__identity);
@@ -5861,6 +5956,7 @@ lime_math_Matrix3.prototype = {
 var lime_math__$Matrix4_Matrix4_$Impl_$ = function() { };
 $hxClasses["lime.math._Matrix4.Matrix4_Impl_"] = lime_math__$Matrix4_Matrix4_$Impl_$;
 lime_math__$Matrix4_Matrix4_$Impl_$.__name__ = ["lime","math","_Matrix4","Matrix4_Impl_"];
+lime_math__$Matrix4_Matrix4_$Impl_$.__properties__ = {set_position:"set_position",get_position:"get_position",get_determinant:"get_determinant"}
 lime_math__$Matrix4_Matrix4_$Impl_$._new = function(data) {
 	var this1;
 	if(data != null && data.length == 16) this1 = data; else this1 = new Float32Array(lime_math__$Matrix4_Matrix4_$Impl_$.__identity);
@@ -6567,6 +6663,7 @@ lime_math_Rectangle.prototype = {
 		return p.clone();
 	}
 	,__class__: lime_math_Rectangle
+	,__properties__: {set_topLeft:"set_topLeft",get_topLeft:"get_topLeft",set_top:"set_top",get_top:"get_top",set_size:"set_size",get_size:"get_size",set_right:"set_right",get_right:"get_right",set_left:"set_left",get_left:"get_left",set_bottomRight:"set_bottomRight",get_bottomRight:"get_bottomRight",set_bottom:"set_bottom",get_bottom:"get_bottom"}
 };
 var lime_math_Vector2 = function(x,y) {
 	if(y == null) y = 0;
@@ -6622,6 +6719,7 @@ lime_math_Vector2.prototype = {
 		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 	,__class__: lime_math_Vector2
+	,__properties__: {get_length:"get_length"}
 };
 var lime_math_Vector4 = function(x,y,z,w) {
 	if(w == null) w = 0.;
@@ -6635,6 +6733,7 @@ var lime_math_Vector4 = function(x,y,z,w) {
 };
 $hxClasses["lime.math.Vector4"] = lime_math_Vector4;
 lime_math_Vector4.__name__ = ["lime","math","Vector4"];
+lime_math_Vector4.__properties__ = {get_Z_AXIS:"get_Z_AXIS",get_Y_AXIS:"get_Y_AXIS",get_X_AXIS:"get_X_AXIS"}
 lime_math_Vector4.X_AXIS = null;
 lime_math_Vector4.Y_AXIS = null;
 lime_math_Vector4.Z_AXIS = null;
@@ -6738,6 +6837,7 @@ lime_math_Vector4.prototype = {
 		return this.x * this.x + this.y * this.y + this.z * this.z;
 	}
 	,__class__: lime_math_Vector4
+	,__properties__: {get_lengthSquared:"get_lengthSquared",get_length:"get_length"}
 };
 var lime_net_URLLoader = function(request) {
 	this.onSecurityError = new lime_app_Event();
@@ -6981,6 +7081,7 @@ lime_net_URLLoader.prototype = {
 		return this.dataFormat;
 	}
 	,__class__: lime_net_URLLoader
+	,__properties__: {set_dataFormat:"set_dataFormat"}
 };
 var lime_net_URLLoaderDataFormat = $hxClasses["lime.net.URLLoaderDataFormat"] = { __ename__ : true, __constructs__ : ["BINARY","TEXT","VARIABLES"] };
 lime_net_URLLoaderDataFormat.BINARY = ["BINARY",0];
@@ -8173,6 +8274,7 @@ lime_utils_ByteArray.prototype = {
 		return value;
 	}
 	,__class__: lime_utils_ByteArray
+	,__properties__: {set_length:"set_length",set_endian:"set_endian",get_endian:"get_endian",get_bytesAvailable:"get_bytesAvailable"}
 };
 var lime_utils_CompressionAlgorithm = $hxClasses["lime.utils.CompressionAlgorithm"] = { __ename__ : true, __constructs__ : ["DEFLATE","ZLIB","LZMA","GZIP"] };
 lime_utils_CompressionAlgorithm.DEFLATE = ["DEFLATE",0];
@@ -8221,12 +8323,1045 @@ $hxClasses["lime.utils.IDataInput"] = lime_utils_IDataInput;
 lime_utils_IDataInput.__name__ = ["lime","utils","IDataInput"];
 lime_utils_IDataInput.prototype = {
 	__class__: lime_utils_IDataInput
+	,__properties__: {set_endian:"set_endian",get_endian:"get_endian",get_bytesAvailable:"get_bytesAvailable"}
 };
 var lime_utils_IMemoryRange = function() { };
 $hxClasses["lime.utils.IMemoryRange"] = lime_utils_IMemoryRange;
 lime_utils_IMemoryRange.__name__ = ["lime","utils","IMemoryRange"];
 lime_utils_IMemoryRange.prototype = {
 	__class__: lime_utils_IMemoryRange
+};
+var motion_actuators_IGenericActuator = function() { };
+$hxClasses["motion.actuators.IGenericActuator"] = motion_actuators_IGenericActuator;
+motion_actuators_IGenericActuator.__name__ = ["motion","actuators","IGenericActuator"];
+motion_actuators_IGenericActuator.prototype = {
+	__class__: motion_actuators_IGenericActuator
+};
+var motion_actuators_GenericActuator = function(target,duration,properties) {
+	this._autoVisible = true;
+	this._delay = 0;
+	this._reflect = false;
+	this._repeat = 0;
+	this._reverse = false;
+	this._smartRotation = false;
+	this._snapping = false;
+	this.special = false;
+	this.target = target;
+	this.properties = properties;
+	this.duration = duration;
+	this._ease = motion_Actuate.defaultEase;
+};
+$hxClasses["motion.actuators.GenericActuator"] = motion_actuators_GenericActuator;
+motion_actuators_GenericActuator.__name__ = ["motion","actuators","GenericActuator"];
+motion_actuators_GenericActuator.__interfaces__ = [motion_actuators_IGenericActuator];
+motion_actuators_GenericActuator.prototype = {
+	apply: function() {
+		var _g = 0;
+		var _g1 = Reflect.fields(this.properties);
+		while(_g < _g1.length) {
+			var i = _g1[_g];
+			++_g;
+			if(Object.prototype.hasOwnProperty.call(this.target,i)) Reflect.setField(this.target,i,Reflect.field(this.properties,i)); else Reflect.setProperty(this.target,i,Reflect.field(this.properties,i));
+		}
+	}
+	,autoVisible: function(value) {
+		if(value == null) value = true;
+		this._autoVisible = value;
+		return this;
+	}
+	,callMethod: function(method,params) {
+		if(params == null) params = [];
+		return method.apply(method,params);
+	}
+	,change: function() {
+		if(this._onUpdate != null) this.callMethod(this._onUpdate,this._onUpdateParams);
+	}
+	,complete: function(sendEvent) {
+		if(sendEvent == null) sendEvent = true;
+		if(sendEvent) {
+			this.change();
+			if(this._onComplete != null) this.callMethod(this._onComplete,this._onCompleteParams);
+		}
+		motion_Actuate.unload(this);
+	}
+	,delay: function(duration) {
+		this._delay = duration;
+		return this;
+	}
+	,ease: function(easing) {
+		this._ease = easing;
+		return this;
+	}
+	,move: function() {
+	}
+	,onComplete: function(handler,parameters) {
+		this._onComplete = handler;
+		if(parameters == null) this._onCompleteParams = []; else this._onCompleteParams = parameters;
+		if(this.duration == 0) this.complete();
+		return this;
+	}
+	,onRepeat: function(handler,parameters) {
+		this._onRepeat = handler;
+		if(parameters == null) this._onRepeatParams = []; else this._onRepeatParams = parameters;
+		return this;
+	}
+	,onUpdate: function(handler,parameters) {
+		this._onUpdate = handler;
+		if(parameters == null) this._onUpdateParams = []; else this._onUpdateParams = parameters;
+		return this;
+	}
+	,pause: function() {
+	}
+	,reflect: function(value) {
+		if(value == null) value = true;
+		this._reflect = value;
+		this.special = true;
+		return this;
+	}
+	,repeat: function(times) {
+		if(times == null) times = -1;
+		this._repeat = times;
+		return this;
+	}
+	,resume: function() {
+	}
+	,reverse: function(value) {
+		if(value == null) value = true;
+		this._reverse = value;
+		this.special = true;
+		return this;
+	}
+	,smartRotation: function(value) {
+		if(value == null) value = true;
+		this._smartRotation = value;
+		this.special = true;
+		return this;
+	}
+	,snapping: function(value) {
+		if(value == null) value = true;
+		this._snapping = value;
+		this.special = true;
+		return this;
+	}
+	,stop: function(properties,complete,sendEvent) {
+	}
+	,__class__: motion_actuators_GenericActuator
+};
+var motion_actuators_SimpleActuator = function(target,duration,properties) {
+	this.active = true;
+	this.propertyDetails = new Array();
+	this.sendChange = false;
+	this.paused = false;
+	this.cacheVisible = false;
+	this.initialized = false;
+	this.setVisible = false;
+	this.toggleVisible = false;
+	this.startTime = openfl_Lib.getTimer() / 1000;
+	motion_actuators_GenericActuator.call(this,target,duration,properties);
+	if(!motion_actuators_SimpleActuator.addedEvent) {
+		motion_actuators_SimpleActuator.addedEvent = true;
+		openfl_Lib.current.stage.addEventListener(openfl_events_Event.ENTER_FRAME,motion_actuators_SimpleActuator.stage_onEnterFrame);
+	}
+};
+$hxClasses["motion.actuators.SimpleActuator"] = motion_actuators_SimpleActuator;
+motion_actuators_SimpleActuator.__name__ = ["motion","actuators","SimpleActuator"];
+motion_actuators_SimpleActuator.stage_onEnterFrame = function(event) {
+	var currentTime = openfl_Lib.getTimer() / 1000;
+	var actuator;
+	var j = 0;
+	var cleanup = false;
+	var _g1 = 0;
+	var _g = motion_actuators_SimpleActuator.actuatorsLength;
+	while(_g1 < _g) {
+		var i = _g1++;
+		actuator = motion_actuators_SimpleActuator.actuators[j];
+		if(actuator != null && actuator.active) {
+			if(currentTime > actuator.timeOffset) actuator.update(currentTime);
+			j++;
+		} else {
+			motion_actuators_SimpleActuator.actuators.splice(j,1);
+			--motion_actuators_SimpleActuator.actuatorsLength;
+		}
+	}
+};
+motion_actuators_SimpleActuator.__super__ = motion_actuators_GenericActuator;
+motion_actuators_SimpleActuator.prototype = $extend(motion_actuators_GenericActuator.prototype,{
+	autoVisible: function(value) {
+		if(value == null) value = true;
+		this._autoVisible = value;
+		if(!value) {
+			this.toggleVisible = false;
+			if(this.setVisible) this.setField(this.target,"visible",this.cacheVisible);
+		}
+		return this;
+	}
+	,delay: function(duration) {
+		this._delay = duration;
+		this.timeOffset = this.startTime + duration;
+		return this;
+	}
+	,getField: function(target,propertyName) {
+		var value = null;
+		if(Object.prototype.hasOwnProperty.call(target,propertyName)) value = Reflect.field(target,propertyName); else value = Reflect.getProperty(target,propertyName);
+		return value;
+	}
+	,initialize: function() {
+		var details;
+		var start;
+		var _g = 0;
+		var _g1 = Reflect.fields(this.properties);
+		while(_g < _g1.length) {
+			var i = _g1[_g];
+			++_g;
+			var isField = true;
+			if(Object.prototype.hasOwnProperty.call(this.target,i) && (!this.target.__properties__ || !this.target.__properties__["set_" + i])) start = Reflect.field(this.target,i); else {
+				isField = false;
+				start = Reflect.getProperty(this.target,i);
+			}
+			if(typeof(start) == "number") {
+				details = new motion_actuators_PropertyDetails(this.target,i,start,this.getField(this.properties,i) - start,isField);
+				this.propertyDetails.push(details);
+			}
+		}
+		this.detailsLength = this.propertyDetails.length;
+		this.initialized = true;
+	}
+	,move: function() {
+		this.toggleVisible = Object.prototype.hasOwnProperty.call(this.properties,"alpha") && js_Boot.__instanceof(this.target,openfl_display_DisplayObject);
+		if(this.toggleVisible && this.properties.alpha != 0 && !this.getField(this.target,"visible")) {
+			this.setVisible = true;
+			this.cacheVisible = this.getField(this.target,"visible");
+			this.setField(this.target,"visible",true);
+		}
+		this.timeOffset = this.startTime;
+		motion_actuators_SimpleActuator.actuators.push(this);
+		++motion_actuators_SimpleActuator.actuatorsLength;
+	}
+	,onUpdate: function(handler,parameters) {
+		this._onUpdate = handler;
+		if(parameters == null) this._onUpdateParams = []; else this._onUpdateParams = parameters;
+		this.sendChange = true;
+		return this;
+	}
+	,pause: function() {
+		this.paused = true;
+		this.pauseTime = openfl_Lib.getTimer();
+	}
+	,resume: function() {
+		if(this.paused) {
+			this.paused = false;
+			this.timeOffset += (openfl_Lib.getTimer() - this.pauseTime) / 1000;
+		}
+	}
+	,setField: function(target,propertyName,value) {
+		if(Object.prototype.hasOwnProperty.call(target,propertyName)) target[propertyName] = value; else Reflect.setProperty(target,propertyName,value);
+	}
+	,setProperty: function(details,value) {
+		if(details.isField) details.target[details.propertyName] = value; else Reflect.setProperty(details.target,details.propertyName,value);
+	}
+	,stop: function(properties,complete,sendEvent) {
+		if(this.active) {
+			if(properties == null) {
+				this.active = false;
+				if(complete) this.apply();
+				this.complete(sendEvent);
+				return;
+			}
+			var _g = 0;
+			var _g1 = Reflect.fields(properties);
+			while(_g < _g1.length) {
+				var i = _g1[_g];
+				++_g;
+				if(Object.prototype.hasOwnProperty.call(this.properties,i)) {
+					this.active = false;
+					if(complete) this.apply();
+					this.complete(sendEvent);
+					return;
+				}
+			}
+		}
+	}
+	,update: function(currentTime) {
+		if(!this.paused) {
+			var details;
+			var easing;
+			var i;
+			var tweenPosition = (currentTime - this.timeOffset) / this.duration;
+			if(tweenPosition > 1) tweenPosition = 1;
+			if(!this.initialized) this.initialize();
+			if(!this.special) {
+				easing = this._ease.calculate(tweenPosition);
+				var _g1 = 0;
+				var _g = this.detailsLength;
+				while(_g1 < _g) {
+					var i1 = _g1++;
+					details = this.propertyDetails[i1];
+					this.setProperty(details,details.start + details.change * easing);
+				}
+			} else {
+				if(!this._reverse) easing = this._ease.calculate(tweenPosition); else easing = this._ease.calculate(1 - tweenPosition);
+				var endValue;
+				var _g11 = 0;
+				var _g2 = this.detailsLength;
+				while(_g11 < _g2) {
+					var i2 = _g11++;
+					details = this.propertyDetails[i2];
+					if(this._smartRotation && (details.propertyName == "rotation" || details.propertyName == "rotationX" || details.propertyName == "rotationY" || details.propertyName == "rotationZ")) {
+						var rotation = details.change % 360;
+						if(rotation > 180) rotation -= 360; else if(rotation < -180) rotation += 360;
+						endValue = details.start + rotation * easing;
+					} else endValue = details.start + details.change * easing;
+					if(!this._snapping) {
+						if(details.isField) details.target[details.propertyName] = endValue; else Reflect.setProperty(details.target,details.propertyName,endValue);
+					} else this.setProperty(details,Math.round(endValue));
+				}
+			}
+			if(tweenPosition == 1) {
+				if(this._repeat == 0) {
+					this.active = false;
+					if(this.toggleVisible && this.getField(this.target,"alpha") == 0) this.setField(this.target,"visible",false);
+					this.complete(true);
+					return;
+				} else {
+					if(this._onRepeat != null) this.callMethod(this._onRepeat,this._onRepeatParams);
+					if(this._reflect) this._reverse = !this._reverse;
+					this.startTime = currentTime;
+					this.timeOffset = this.startTime + this._delay;
+					if(this._repeat > 0) this._repeat--;
+				}
+			}
+			if(this.sendChange) this.change();
+		}
+	}
+	,__class__: motion_actuators_SimpleActuator
+});
+var motion_easing_Expo = function() { };
+$hxClasses["motion.easing.Expo"] = motion_easing_Expo;
+motion_easing_Expo.__name__ = ["motion","easing","Expo"];
+motion_easing_Expo.__properties__ = {get_easeOut:"get_easeOut",get_easeInOut:"get_easeInOut",get_easeIn:"get_easeIn"}
+motion_easing_Expo.get_easeIn = function() {
+	return new motion_easing_ExpoEaseIn();
+};
+motion_easing_Expo.get_easeInOut = function() {
+	return new motion_easing_ExpoEaseInOut();
+};
+motion_easing_Expo.get_easeOut = function() {
+	return new motion_easing_ExpoEaseOut();
+};
+var motion_easing_IEasing = function() { };
+$hxClasses["motion.easing.IEasing"] = motion_easing_IEasing;
+motion_easing_IEasing.__name__ = ["motion","easing","IEasing"];
+motion_easing_IEasing.prototype = {
+	__class__: motion_easing_IEasing
+};
+var motion_easing_ExpoEaseOut = function() {
+};
+$hxClasses["motion.easing.ExpoEaseOut"] = motion_easing_ExpoEaseOut;
+motion_easing_ExpoEaseOut.__name__ = ["motion","easing","ExpoEaseOut"];
+motion_easing_ExpoEaseOut.__interfaces__ = [motion_easing_IEasing];
+motion_easing_ExpoEaseOut.prototype = {
+	calculate: function(k) {
+		if(k == 1) return 1; else return 1 - Math.pow(2,-10 * k);
+	}
+	,ease: function(t,b,c,d) {
+		if(t == d) return b + c; else return c * (1 - Math.pow(2,-10 * t / d)) + b;
+	}
+	,__class__: motion_easing_ExpoEaseOut
+};
+var motion_Actuate = function() { };
+$hxClasses["motion.Actuate"] = motion_Actuate;
+motion_Actuate.__name__ = ["motion","Actuate"];
+motion_Actuate.apply = function(target,properties,customActuator) {
+	motion_Actuate.stop(target,properties);
+	if(customActuator == null) customActuator = motion_Actuate.defaultActuator;
+	var actuator = Type.createInstance(customActuator,[target,0,properties]);
+	actuator.apply();
+	return actuator;
+};
+motion_Actuate.effects = function(target,duration,overwrite) {
+	if(overwrite == null) overwrite = true;
+	return new motion__$Actuate_EffectsOptions(target,duration,overwrite);
+};
+motion_Actuate.getLibrary = function(target,allowCreation) {
+	if(allowCreation == null) allowCreation = true;
+	if(!motion_Actuate.targetLibraries.exists(target) && allowCreation) motion_Actuate.targetLibraries.set(target,new Array());
+	return motion_Actuate.targetLibraries.get(target);
+};
+motion_Actuate.motionPath = function(target,duration,properties,overwrite) {
+	if(overwrite == null) overwrite = true;
+	return motion_Actuate.tween(target,duration,properties,overwrite,motion_actuators_MotionPathActuator);
+};
+motion_Actuate.pause = function(target) {
+	if(js_Boot.__instanceof(target,motion_actuators_GenericActuator)) (js_Boot.__cast(target , motion_actuators_GenericActuator)).pause(); else {
+		var library = motion_Actuate.getLibrary(target,false);
+		if(library != null) {
+			var _g = 0;
+			while(_g < library.length) {
+				var actuator = library[_g];
+				++_g;
+				actuator.pause();
+			}
+		}
+	}
+};
+motion_Actuate.pauseAll = function() {
+	var $it0 = motion_Actuate.targetLibraries.iterator();
+	while( $it0.hasNext() ) {
+		var library = $it0.next();
+		var _g = 0;
+		while(_g < library.length) {
+			var actuator = library[_g];
+			++_g;
+			actuator.pause();
+		}
+	}
+};
+motion_Actuate.reset = function() {
+	var $it0 = motion_Actuate.targetLibraries.iterator();
+	while( $it0.hasNext() ) {
+		var library = $it0.next();
+		var i = library.length - 1;
+		while(i >= 0) {
+			library[i].stop(null,false,false);
+			i--;
+		}
+	}
+	motion_Actuate.targetLibraries = new haxe_ds_ObjectMap();
+};
+motion_Actuate.resume = function(target) {
+	if(js_Boot.__instanceof(target,motion_actuators_GenericActuator)) (js_Boot.__cast(target , motion_actuators_GenericActuator)).resume(); else {
+		var library = motion_Actuate.getLibrary(target,false);
+		if(library != null) {
+			var _g = 0;
+			while(_g < library.length) {
+				var actuator = library[_g];
+				++_g;
+				actuator.resume();
+			}
+		}
+	}
+};
+motion_Actuate.resumeAll = function() {
+	var $it0 = motion_Actuate.targetLibraries.iterator();
+	while( $it0.hasNext() ) {
+		var library = $it0.next();
+		var _g = 0;
+		while(_g < library.length) {
+			var actuator = library[_g];
+			++_g;
+			actuator.resume();
+		}
+	}
+};
+motion_Actuate.stop = function(target,properties,complete,sendEvent) {
+	if(sendEvent == null) sendEvent = true;
+	if(complete == null) complete = false;
+	if(target != null) {
+		if(js_Boot.__instanceof(target,motion_actuators_GenericActuator)) (js_Boot.__cast(target , motion_actuators_GenericActuator)).stop(null,complete,sendEvent); else {
+			var library = motion_Actuate.getLibrary(target,false);
+			if(library != null) {
+				if(typeof(properties) == "string") {
+					var temp = { };
+					Reflect.setField(temp,properties,null);
+					properties = temp;
+				} else if((properties instanceof Array) && properties.__enum__ == null) {
+					var temp1 = { };
+					var _g = 0;
+					var _g1;
+					_g1 = js_Boot.__cast(properties , Array);
+					while(_g < _g1.length) {
+						var property = _g1[_g];
+						++_g;
+						Reflect.setField(temp1,property,null);
+					}
+					properties = temp1;
+				}
+				var i = library.length - 1;
+				while(i >= 0) {
+					library[i].stop(properties,complete,sendEvent);
+					i--;
+				}
+			}
+		}
+	}
+};
+motion_Actuate.timer = function(duration,customActuator) {
+	return motion_Actuate.tween(new motion__$Actuate_TweenTimer(0),duration,new motion__$Actuate_TweenTimer(1),false,customActuator);
+};
+motion_Actuate.transform = function(target,duration,overwrite) {
+	if(overwrite == null) overwrite = true;
+	if(duration == null) duration = 0;
+	return new motion__$Actuate_TransformOptions(target,duration,overwrite);
+};
+motion_Actuate.tween = function(target,duration,properties,overwrite,customActuator) {
+	if(overwrite == null) overwrite = true;
+	if(target != null) {
+		if(duration > 0) {
+			if(customActuator == null) customActuator = motion_Actuate.defaultActuator;
+			var actuator = Type.createInstance(customActuator,[target,duration,properties]);
+			var library = motion_Actuate.getLibrary(actuator.target);
+			if(overwrite) {
+				var i = library.length - 1;
+				while(i >= 0) {
+					library[i].stop(actuator.properties,false,false);
+					i--;
+				}
+				library = motion_Actuate.getLibrary(actuator.target);
+			}
+			library.push(actuator);
+			actuator.move();
+			return actuator;
+		} else return motion_Actuate.apply(target,properties,customActuator);
+	}
+	return null;
+};
+motion_Actuate.unload = function(actuator) {
+	var target = actuator.target;
+	if(motion_Actuate.targetLibraries.h.__keys__[target.__id__] != null) {
+		HxOverrides.remove(motion_Actuate.targetLibraries.h[target.__id__],actuator);
+		if(motion_Actuate.targetLibraries.h[target.__id__].length == 0) motion_Actuate.targetLibraries.remove(target);
+	}
+};
+motion_Actuate.update = function(target,duration,start,end,overwrite) {
+	if(overwrite == null) overwrite = true;
+	var properties = { start : start, end : end};
+	return motion_Actuate.tween(target,duration,properties,overwrite,motion_actuators_MethodActuator);
+};
+var motion__$Actuate_EffectsOptions = function(target,duration,overwrite) {
+	this.target = target;
+	this.duration = duration;
+	this.overwrite = overwrite;
+};
+$hxClasses["motion._Actuate.EffectsOptions"] = motion__$Actuate_EffectsOptions;
+motion__$Actuate_EffectsOptions.__name__ = ["motion","_Actuate","EffectsOptions"];
+motion__$Actuate_EffectsOptions.prototype = {
+	filter: function(reference,properties) {
+		properties.filter = reference;
+		return motion_Actuate.tween(this.target,this.duration,properties,this.overwrite,motion_actuators_FilterActuator);
+	}
+	,__class__: motion__$Actuate_EffectsOptions
+};
+var motion__$Actuate_TransformOptions = function(target,duration,overwrite) {
+	this.target = target;
+	this.duration = duration;
+	this.overwrite = overwrite;
+};
+$hxClasses["motion._Actuate.TransformOptions"] = motion__$Actuate_TransformOptions;
+motion__$Actuate_TransformOptions.__name__ = ["motion","_Actuate","TransformOptions"];
+motion__$Actuate_TransformOptions.prototype = {
+	color: function(value,strength,alpha) {
+		if(strength == null) strength = 1;
+		if(value == null) value = 0;
+		var properties = { colorValue : value, colorStrength : strength};
+		if(alpha != null) properties.colorAlpha = alpha;
+		return motion_Actuate.tween(this.target,this.duration,properties,this.overwrite,motion_actuators_TransformActuator);
+	}
+	,sound: function(volume,pan) {
+		var properties = { };
+		if(volume != null) properties.soundVolume = volume;
+		if(pan != null) properties.soundPan = pan;
+		return motion_Actuate.tween(this.target,this.duration,properties,this.overwrite,motion_actuators_TransformActuator);
+	}
+	,__class__: motion__$Actuate_TransformOptions
+};
+var motion__$Actuate_TweenTimer = function(progress) {
+	this.progress = progress;
+};
+$hxClasses["motion._Actuate.TweenTimer"] = motion__$Actuate_TweenTimer;
+motion__$Actuate_TweenTimer.__name__ = ["motion","_Actuate","TweenTimer"];
+motion__$Actuate_TweenTimer.prototype = {
+	__class__: motion__$Actuate_TweenTimer
+};
+var motion_MotionPath = function() {
+	this._x = new motion_ComponentPath();
+	this._y = new motion_ComponentPath();
+	this._rotation = null;
+};
+$hxClasses["motion.MotionPath"] = motion_MotionPath;
+motion_MotionPath.__name__ = ["motion","MotionPath"];
+motion_MotionPath.prototype = {
+	bezier: function(x,y,controlX,controlY,strength) {
+		if(strength == null) strength = 1;
+		this._x.addPath(new motion_BezierPath(x,controlX,strength));
+		this._y.addPath(new motion_BezierPath(y,controlY,strength));
+		return this;
+	}
+	,line: function(x,y,strength) {
+		if(strength == null) strength = 1;
+		this._x.addPath(new motion_LinearPath(x,strength));
+		this._y.addPath(new motion_LinearPath(y,strength));
+		return this;
+	}
+	,get_rotation: function() {
+		if(this._rotation == null) this._rotation = new motion_RotationPath(this._x,this._y);
+		return this._rotation;
+	}
+	,get_x: function() {
+		return this._x;
+	}
+	,get_y: function() {
+		return this._y;
+	}
+	,__class__: motion_MotionPath
+	,__properties__: {get_y:"get_y",get_x:"get_x",get_rotation:"get_rotation"}
+};
+var motion_IComponentPath = function() { };
+$hxClasses["motion.IComponentPath"] = motion_IComponentPath;
+motion_IComponentPath.__name__ = ["motion","IComponentPath"];
+motion_IComponentPath.prototype = {
+	__class__: motion_IComponentPath
+};
+var motion_ComponentPath = function() {
+	this.paths = new Array();
+	this.start = 0;
+	this.totalStrength = 0;
+};
+$hxClasses["motion.ComponentPath"] = motion_ComponentPath;
+motion_ComponentPath.__name__ = ["motion","ComponentPath"];
+motion_ComponentPath.__interfaces__ = [motion_IComponentPath];
+motion_ComponentPath.prototype = {
+	addPath: function(path) {
+		this.paths.push(path);
+		this.totalStrength += path.strength;
+	}
+	,calculate: function(k) {
+		if(this.paths.length == 1) return this.paths[0].calculate(this.start,k); else {
+			var ratio = k * this.totalStrength;
+			var lastEnd = this.start;
+			var _g = 0;
+			var _g1 = this.paths;
+			while(_g < _g1.length) {
+				var path = _g1[_g];
+				++_g;
+				if(ratio > path.strength) {
+					ratio -= path.strength;
+					lastEnd = path.end;
+				} else return path.calculate(lastEnd,ratio / path.strength);
+			}
+		}
+		return 0;
+	}
+	,get_end: function() {
+		if(this.paths.length > 0) {
+			var path = this.paths[this.paths.length - 1];
+			return path.end;
+		} else return this.start;
+	}
+	,__class__: motion_ComponentPath
+	,__properties__: {get_end:"get_end"}
+};
+var motion_BezierPath = function(end,control,strength) {
+	this.end = end;
+	this.control = control;
+	this.strength = strength;
+};
+$hxClasses["motion.BezierPath"] = motion_BezierPath;
+motion_BezierPath.__name__ = ["motion","BezierPath"];
+motion_BezierPath.prototype = {
+	calculate: function(start,k) {
+		return (1 - k) * (1 - k) * start + 2 * (1 - k) * k * this.control + k * k * this.end;
+	}
+	,__class__: motion_BezierPath
+};
+var motion_LinearPath = function(end,strength) {
+	motion_BezierPath.call(this,end,0,strength);
+};
+$hxClasses["motion.LinearPath"] = motion_LinearPath;
+motion_LinearPath.__name__ = ["motion","LinearPath"];
+motion_LinearPath.__super__ = motion_BezierPath;
+motion_LinearPath.prototype = $extend(motion_BezierPath.prototype,{
+	calculate: function(start,k) {
+		return start + k * (this.end - start);
+	}
+	,__class__: motion_LinearPath
+});
+var motion_RotationPath = function(x,y) {
+	this.step = 0.01;
+	this._x = x;
+	this._y = y;
+	this.offset = 0;
+	this.start = this.calculate(0.0);
+};
+$hxClasses["motion.RotationPath"] = motion_RotationPath;
+motion_RotationPath.__name__ = ["motion","RotationPath"];
+motion_RotationPath.__interfaces__ = [motion_IComponentPath];
+motion_RotationPath.prototype = {
+	calculate: function(k) {
+		var dX = this._x.calculate(k) - this._x.calculate(k + this.step);
+		var dY = this._y.calculate(k) - this._y.calculate(k + this.step);
+		var angle = Math.atan2(dY,dX) * (180 / Math.PI);
+		angle = (angle + this.offset) % 360;
+		return angle;
+	}
+	,get_end: function() {
+		return this.calculate(1.0);
+	}
+	,__class__: motion_RotationPath
+	,__properties__: {get_end:"get_end"}
+};
+var motion_actuators_FilterActuator = function(target,duration,properties) {
+	this.filterIndex = -1;
+	motion_actuators_SimpleActuator.call(this,target,duration,properties);
+	if(js_Boot.__instanceof(properties.filter,Class)) {
+		this.filterClass = properties.filter;
+		var _g = 0;
+		var _g1 = (js_Boot.__cast(target , openfl_display_DisplayObject)).get_filters();
+		while(_g < _g1.length) {
+			var filter = _g1[_g];
+			++_g;
+			if(js_Boot.__instanceof(filter,this.filterClass)) this.filter = filter;
+		}
+	} else {
+		this.filterIndex = properties.filter;
+		this.filter = (js_Boot.__cast(target , openfl_display_DisplayObject)).get_filters()[this.filterIndex];
+	}
+};
+$hxClasses["motion.actuators.FilterActuator"] = motion_actuators_FilterActuator;
+motion_actuators_FilterActuator.__name__ = ["motion","actuators","FilterActuator"];
+motion_actuators_FilterActuator.__super__ = motion_actuators_SimpleActuator;
+motion_actuators_FilterActuator.prototype = $extend(motion_actuators_SimpleActuator.prototype,{
+	apply: function() {
+		var _g = 0;
+		var _g1 = Reflect.fields(this.properties);
+		while(_g < _g1.length) {
+			var propertyName = _g1[_g];
+			++_g;
+			if(propertyName != "filter") Reflect.setField(this.filter,propertyName,Reflect.field(this.properties,propertyName));
+		}
+		var filters = this.getField(this.target,"filters");
+		Reflect.setField(filters,this.properties.filter,this.filter);
+		this.setField(this.target,"filters",filters);
+	}
+	,initialize: function() {
+		var details;
+		var start;
+		var _g = 0;
+		var _g1 = Reflect.fields(this.properties);
+		while(_g < _g1.length) {
+			var propertyName = _g1[_g];
+			++_g;
+			if(propertyName != "filter") {
+				start = this.getField(this.filter,propertyName);
+				details = new motion_actuators_PropertyDetails(this.filter,propertyName,start,Reflect.field(this.properties,propertyName) - start);
+				this.propertyDetails.push(details);
+			}
+		}
+		this.detailsLength = this.propertyDetails.length;
+		this.initialized = true;
+	}
+	,update: function(currentTime) {
+		motion_actuators_SimpleActuator.prototype.update.call(this,currentTime);
+		var filters = (js_Boot.__cast(this.target , openfl_display_DisplayObject)).get_filters();
+		if(this.filterIndex > -1) Reflect.setField(filters,this.properties.filter,this.filter); else {
+			var _g1 = 0;
+			var _g = filters.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				if(js_Boot.__instanceof(filters[i],this.filterClass)) filters[i] = this.filter;
+			}
+		}
+		this.setField(this.target,"filters",filters);
+	}
+	,__class__: motion_actuators_FilterActuator
+});
+var motion_actuators_MethodActuator = function(target,duration,properties) {
+	this.currentParameters = new Array();
+	this.tweenProperties = { };
+	motion_actuators_SimpleActuator.call(this,target,duration,properties);
+	if(!Object.prototype.hasOwnProperty.call(properties,"start")) this.properties.start = new Array();
+	if(!Object.prototype.hasOwnProperty.call(properties,"end")) this.properties.end = this.properties.start;
+	var _g1 = 0;
+	var _g = this.properties.start.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		this.currentParameters.push(null);
+	}
+};
+$hxClasses["motion.actuators.MethodActuator"] = motion_actuators_MethodActuator;
+motion_actuators_MethodActuator.__name__ = ["motion","actuators","MethodActuator"];
+motion_actuators_MethodActuator.__super__ = motion_actuators_SimpleActuator;
+motion_actuators_MethodActuator.prototype = $extend(motion_actuators_SimpleActuator.prototype,{
+	apply: function() {
+		this.callMethod(this.target,this.properties.end);
+	}
+	,complete: function(sendEvent) {
+		if(sendEvent == null) sendEvent = true;
+		var _g1 = 0;
+		var _g = this.properties.start.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			this.currentParameters[i] = Reflect.field(this.tweenProperties,"param" + i);
+		}
+		this.callMethod(this.target,this.currentParameters);
+		motion_actuators_SimpleActuator.prototype.complete.call(this,sendEvent);
+	}
+	,initialize: function() {
+		var details;
+		var propertyName;
+		var start;
+		var _g1 = 0;
+		var _g = this.properties.start.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			propertyName = "param" + i;
+			start = this.properties.start[i];
+			this.tweenProperties[propertyName] = start;
+			if(typeof(start) == "number" || ((start | 0) === start)) {
+				details = new motion_actuators_PropertyDetails(this.tweenProperties,propertyName,start,this.properties.end[i] - start);
+				this.propertyDetails.push(details);
+			}
+		}
+		this.detailsLength = this.propertyDetails.length;
+		this.initialized = true;
+	}
+	,update: function(currentTime) {
+		motion_actuators_SimpleActuator.prototype.update.call(this,currentTime);
+		if(this.active) {
+			var _g1 = 0;
+			var _g = this.properties.start.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				this.currentParameters[i] = Reflect.field(this.tweenProperties,"param" + i);
+			}
+			this.callMethod(this.target,this.currentParameters);
+		}
+	}
+	,__class__: motion_actuators_MethodActuator
+});
+var motion_actuators_MotionPathActuator = function(target,duration,properties) {
+	motion_actuators_SimpleActuator.call(this,target,duration,properties);
+};
+$hxClasses["motion.actuators.MotionPathActuator"] = motion_actuators_MotionPathActuator;
+motion_actuators_MotionPathActuator.__name__ = ["motion","actuators","MotionPathActuator"];
+motion_actuators_MotionPathActuator.__super__ = motion_actuators_SimpleActuator;
+motion_actuators_MotionPathActuator.prototype = $extend(motion_actuators_SimpleActuator.prototype,{
+	apply: function() {
+		var _g = 0;
+		var _g1 = Reflect.fields(this.properties);
+		while(_g < _g1.length) {
+			var propertyName = _g1[_g];
+			++_g;
+			if(Object.prototype.hasOwnProperty.call(this.target,propertyName)) Reflect.setField(this.target,propertyName,(js_Boot.__cast(Reflect.field(this.properties,propertyName) , motion_IComponentPath)).get_end()); else Reflect.setProperty(this.target,propertyName,(js_Boot.__cast(Reflect.field(this.properties,propertyName) , motion_IComponentPath)).get_end());
+		}
+	}
+	,initialize: function() {
+		var details;
+		var path;
+		var _g = 0;
+		var _g1 = Reflect.fields(this.properties);
+		while(_g < _g1.length) {
+			var propertyName = _g1[_g];
+			++_g;
+			path = js_Boot.__cast(Reflect.field(this.properties,propertyName) , motion_IComponentPath);
+			if(path != null) {
+				var isField = true;
+				if(Object.prototype.hasOwnProperty.call(this.target,propertyName)) path.start = Reflect.field(this.target,propertyName); else {
+					isField = false;
+					path.start = Reflect.getProperty(this.target,propertyName);
+				}
+				details = new motion_actuators_PropertyPathDetails(this.target,propertyName,path,isField);
+				this.propertyDetails.push(details);
+			}
+		}
+		this.detailsLength = this.propertyDetails.length;
+		this.initialized = true;
+	}
+	,update: function(currentTime) {
+		if(!this.paused) {
+			var details;
+			var easing;
+			var tweenPosition = (currentTime - this.timeOffset) / this.duration;
+			if(tweenPosition > 1) tweenPosition = 1;
+			if(!this.initialized) this.initialize();
+			if(!this.special) {
+				easing = this._ease.calculate(tweenPosition);
+				var _g = 0;
+				var _g1 = this.propertyDetails;
+				while(_g < _g1.length) {
+					var details1 = _g1[_g];
+					++_g;
+					if(details1.isField) Reflect.setField(details1.target,details1.propertyName,(js_Boot.__cast(details1 , motion_actuators_PropertyPathDetails)).path.calculate(easing)); else Reflect.setProperty(details1.target,details1.propertyName,(js_Boot.__cast(details1 , motion_actuators_PropertyPathDetails)).path.calculate(easing));
+				}
+			} else {
+				if(!this._reverse) easing = this._ease.calculate(tweenPosition); else easing = this._ease.calculate(1 - tweenPosition);
+				var endValue;
+				var _g2 = 0;
+				var _g11 = this.propertyDetails;
+				while(_g2 < _g11.length) {
+					var details2 = _g11[_g2];
+					++_g2;
+					if(!this._snapping) {
+						if(details2.isField) Reflect.setField(details2.target,details2.propertyName,(js_Boot.__cast(details2 , motion_actuators_PropertyPathDetails)).path.calculate(easing)); else Reflect.setProperty(details2.target,details2.propertyName,(js_Boot.__cast(details2 , motion_actuators_PropertyPathDetails)).path.calculate(easing));
+					} else if(details2.isField) Reflect.setField(details2.target,details2.propertyName,Math.round((js_Boot.__cast(details2 , motion_actuators_PropertyPathDetails)).path.calculate(easing))); else Reflect.setProperty(details2.target,details2.propertyName,Math.round((js_Boot.__cast(details2 , motion_actuators_PropertyPathDetails)).path.calculate(easing)));
+				}
+			}
+			if(tweenPosition == 1) {
+				if(this._repeat == 0) {
+					this.active = false;
+					if(this.toggleVisible && this.getField(this.target,"alpha") == 0) this.setField(this.target,"visible",false);
+					this.complete(true);
+					return;
+				} else {
+					if(this._reflect) this._reverse = !this._reverse;
+					this.startTime = currentTime;
+					this.timeOffset = this.startTime + this._delay;
+					if(this._repeat > 0) this._repeat--;
+				}
+			}
+			if(this.sendChange) this.change();
+		}
+	}
+	,__class__: motion_actuators_MotionPathActuator
+});
+var motion_actuators_PropertyDetails = function(target,propertyName,start,change,isField) {
+	if(isField == null) isField = true;
+	this.target = target;
+	this.propertyName = propertyName;
+	this.start = start;
+	this.change = change;
+	this.isField = isField;
+};
+$hxClasses["motion.actuators.PropertyDetails"] = motion_actuators_PropertyDetails;
+motion_actuators_PropertyDetails.__name__ = ["motion","actuators","PropertyDetails"];
+motion_actuators_PropertyDetails.prototype = {
+	__class__: motion_actuators_PropertyDetails
+};
+var motion_actuators_PropertyPathDetails = function(target,propertyName,path,isField) {
+	if(isField == null) isField = true;
+	motion_actuators_PropertyDetails.call(this,target,propertyName,0,0,isField);
+	this.path = path;
+};
+$hxClasses["motion.actuators.PropertyPathDetails"] = motion_actuators_PropertyPathDetails;
+motion_actuators_PropertyPathDetails.__name__ = ["motion","actuators","PropertyPathDetails"];
+motion_actuators_PropertyPathDetails.__super__ = motion_actuators_PropertyDetails;
+motion_actuators_PropertyPathDetails.prototype = $extend(motion_actuators_PropertyDetails.prototype,{
+	__class__: motion_actuators_PropertyPathDetails
+});
+var motion_actuators_TransformActuator = function(target,duration,properties) {
+	motion_actuators_SimpleActuator.call(this,target,duration,properties);
+};
+$hxClasses["motion.actuators.TransformActuator"] = motion_actuators_TransformActuator;
+motion_actuators_TransformActuator.__name__ = ["motion","actuators","TransformActuator"];
+motion_actuators_TransformActuator.__super__ = motion_actuators_SimpleActuator;
+motion_actuators_TransformActuator.prototype = $extend(motion_actuators_SimpleActuator.prototype,{
+	apply: function() {
+		this.initialize();
+		if(this.endColorTransform != null) {
+			var transform = this.getField(this.target,"transform");
+			this.setField(transform,"colorTransform",this.endColorTransform);
+		}
+		if(this.endSoundTransform != null) this.setField(this.target,"soundTransform",this.endSoundTransform);
+	}
+	,initialize: function() {
+		if(Object.prototype.hasOwnProperty.call(this.properties,"colorValue") && js_Boot.__instanceof(this.target,openfl_display_DisplayObject)) this.initializeColor();
+		if(Object.prototype.hasOwnProperty.call(this.properties,"soundVolume") || Object.prototype.hasOwnProperty.call(this.properties,"soundPan")) this.initializeSound();
+		this.detailsLength = this.propertyDetails.length;
+		this.initialized = true;
+	}
+	,initializeColor: function() {
+		this.endColorTransform = new openfl_geom_ColorTransform();
+		var color = this.properties.colorValue;
+		var strength = this.properties.colorStrength;
+		if(strength < 1) {
+			var multiplier;
+			var offset;
+			if(strength < 0.5) {
+				multiplier = 1;
+				offset = strength * 2;
+			} else {
+				multiplier = 1 - (strength - 0.5) * 2;
+				offset = 1;
+			}
+			this.endColorTransform.redMultiplier = multiplier;
+			this.endColorTransform.greenMultiplier = multiplier;
+			this.endColorTransform.blueMultiplier = multiplier;
+			this.endColorTransform.redOffset = offset * (color >> 16 & 255);
+			this.endColorTransform.greenOffset = offset * (color >> 8 & 255);
+			this.endColorTransform.blueOffset = offset * (color & 255);
+		} else {
+			this.endColorTransform.redMultiplier = 0;
+			this.endColorTransform.greenMultiplier = 0;
+			this.endColorTransform.blueMultiplier = 0;
+			this.endColorTransform.redOffset = color >> 16 & 255;
+			this.endColorTransform.greenOffset = color >> 8 & 255;
+			this.endColorTransform.blueOffset = color & 255;
+		}
+		var propertyNames = ["redMultiplier","greenMultiplier","blueMultiplier","redOffset","greenOffset","blueOffset"];
+		if(Object.prototype.hasOwnProperty.call(this.properties,"colorAlpha")) {
+			this.endColorTransform.alphaMultiplier = this.properties.colorAlpha;
+			propertyNames.push("alphaMultiplier");
+		} else this.endColorTransform.alphaMultiplier = this.getField(this.target,"alpha");
+		var transform = this.getField(this.target,"transform");
+		var begin = this.getField(transform,"colorTransform");
+		this.tweenColorTransform = new openfl_geom_ColorTransform();
+		var details;
+		var start;
+		var _g = 0;
+		while(_g < propertyNames.length) {
+			var propertyName = propertyNames[_g];
+			++_g;
+			start = this.getField(begin,propertyName);
+			details = new motion_actuators_PropertyDetails(this.tweenColorTransform,propertyName,start,this.getField(this.endColorTransform,propertyName) - start);
+			this.propertyDetails.push(details);
+		}
+	}
+	,initializeSound: function() {
+		if(this.getField(this.target,"soundTransform") == null) this.setField(this.target,"soundTransform",new openfl_media_SoundTransform());
+		var start = this.getField(this.target,"soundTransform");
+		this.endSoundTransform = this.getField(this.target,"soundTransform");
+		this.tweenSoundTransform = new openfl_media_SoundTransform();
+		if(Object.prototype.hasOwnProperty.call(this.properties,"soundVolume")) {
+			this.endSoundTransform.volume = this.properties.soundVolume;
+			this.propertyDetails.push(new motion_actuators_PropertyDetails(this.tweenSoundTransform,"volume",start.volume,this.endSoundTransform.volume - start.volume));
+		}
+		if(Object.prototype.hasOwnProperty.call(this.properties,"soundPan")) {
+			this.endSoundTransform.pan = this.properties.soundPan;
+			this.propertyDetails.push(new motion_actuators_PropertyDetails(this.tweenSoundTransform,"pan",start.pan,this.endSoundTransform.pan - start.pan));
+		}
+	}
+	,update: function(currentTime) {
+		motion_actuators_SimpleActuator.prototype.update.call(this,currentTime);
+		if(this.endColorTransform != null) {
+			var transform = this.getField(this.target,"transform");
+			this.setField(transform,"colorTransform",this.tweenColorTransform);
+		}
+		if(this.endSoundTransform != null) this.setField(this.target,"soundTransform",this.tweenSoundTransform);
+	}
+	,__class__: motion_actuators_TransformActuator
+});
+var motion_easing_ExpoEaseIn = function() {
+};
+$hxClasses["motion.easing.ExpoEaseIn"] = motion_easing_ExpoEaseIn;
+motion_easing_ExpoEaseIn.__name__ = ["motion","easing","ExpoEaseIn"];
+motion_easing_ExpoEaseIn.__interfaces__ = [motion_easing_IEasing];
+motion_easing_ExpoEaseIn.prototype = {
+	calculate: function(k) {
+		if(k == 0) return 0; else return Math.pow(2,10 * (k - 1));
+	}
+	,ease: function(t,b,c,d) {
+		if(t == 0) return b; else return c * Math.pow(2,10 * (t / d - 1)) + b;
+	}
+	,__class__: motion_easing_ExpoEaseIn
+};
+var motion_easing_ExpoEaseInOut = function() {
+};
+$hxClasses["motion.easing.ExpoEaseInOut"] = motion_easing_ExpoEaseInOut;
+motion_easing_ExpoEaseInOut.__name__ = ["motion","easing","ExpoEaseInOut"];
+motion_easing_ExpoEaseInOut.__interfaces__ = [motion_easing_IEasing];
+motion_easing_ExpoEaseInOut.prototype = {
+	calculate: function(k) {
+		if(k == 0) return 0;
+		if(k == 1) return 1;
+		if((k /= 0.5) < 1.0) return 0.5 * Math.pow(2,10 * (k - 1));
+		return 0.5 * (2 - Math.pow(2,-10 * --k));
+	}
+	,ease: function(t,b,c,d) {
+		if(t == 0) return b;
+		if(t == d) return b + c;
+		if((t /= d / 2.0) < 1.0) return c / 2 * Math.pow(2,10 * (t - 1)) + b;
+		return c / 2 * (2 - Math.pow(2,-10 * --t)) + b;
+	}
+	,__class__: motion_easing_ExpoEaseInOut
 };
 var nape_Config = function() {
 };
@@ -8252,6 +9387,7 @@ nape_callbacks_Callback.prototype = {
 		return "";
 	}
 	,__class__: nape_callbacks_Callback
+	,__properties__: {get_listener:"get_listener",get_event:"get_event"}
 };
 var nape_callbacks_BodyCallback = function() {
 	nape_callbacks_Callback.call(this);
@@ -8271,6 +9407,7 @@ nape_callbacks_BodyCallback.prototype = $extend(nape_callbacks_Callback.prototyp
 		return ret;
 	}
 	,__class__: nape_callbacks_BodyCallback
+	,__properties__: $extend(nape_callbacks_Callback.prototype.__properties__,{get_body:"get_body"})
 });
 var nape_callbacks_Listener = function() {
 	this.zpp_inner = null;
@@ -8397,6 +9534,7 @@ nape_callbacks_Listener.prototype = {
 		}
 	}
 	,__class__: nape_callbacks_Listener
+	,__properties__: {set_space:"set_space",get_space:"get_space",set_precedence:"set_precedence",get_precedence:"get_precedence",set_event:"set_event",get_event:"get_event",get_type:"get_type"}
 };
 var nape_callbacks_BodyListener = function(event,options,handler,precedence) {
 	if(precedence == null) precedence = 0;
@@ -8451,12 +9589,14 @@ nape_callbacks_BodyListener.prototype = $extend(nape_callbacks_Listener.prototyp
 		return this.zpp_inner_zn.handler;
 	}
 	,__class__: nape_callbacks_BodyListener
+	,__properties__: $extend(nape_callbacks_Listener.prototype.__properties__,{set_handler:"set_handler",get_handler:"get_handler",set_options:"set_options",get_options:"get_options"})
 });
 var nape_callbacks_CbEvent = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "CbEvent" + " derp!";
 };
 $hxClasses["nape.callbacks.CbEvent"] = nape_callbacks_CbEvent;
 nape_callbacks_CbEvent.__name__ = ["nape","callbacks","CbEvent"];
+nape_callbacks_CbEvent.__properties__ = {get_PRE:"get_PRE",get_BREAK:"get_BREAK",get_SLEEP:"get_SLEEP",get_WAKE:"get_WAKE",get_END:"get_END",get_ONGOING:"get_ONGOING",get_BEGIN:"get_BEGIN"}
 nape_callbacks_CbEvent.get_BEGIN = function() {
 	if(zpp_$nape_util_ZPP_$Flags.CbEvent_BEGIN == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -8589,6 +9729,7 @@ var nape_callbacks_CbType = function() {
 };
 $hxClasses["nape.callbacks.CbType"] = nape_callbacks_CbType;
 nape_callbacks_CbType.__name__ = ["nape","callbacks","CbType"];
+nape_callbacks_CbType.__properties__ = {get_ANY_COMPOUND:"get_ANY_COMPOUND",get_ANY_SHAPE:"get_ANY_SHAPE",get_ANY_CONSTRAINT:"get_ANY_CONSTRAINT",get_ANY_BODY:"get_ANY_BODY"}
 nape_callbacks_CbType.get_ANY_BODY = function() {
 	return zpp_$nape_callbacks_ZPP_$CbType.ANY_BODY;
 };
@@ -8627,6 +9768,7 @@ nape_callbacks_CbType.prototype = {
 		if(this == zpp_$nape_callbacks_ZPP_$CbType.ANY_BODY) return "ANY_BODY"; else if(this == zpp_$nape_callbacks_ZPP_$CbType.ANY_SHAPE) return "ANY_SHAPE"; else if(this == zpp_$nape_callbacks_ZPP_$CbType.ANY_COMPOUND) return "ANY_COMPOUND"; else if(this == zpp_$nape_callbacks_ZPP_$CbType.ANY_CONSTRAINT) return "ANY_CONSTRAINT"; else return "CbType#" + this.zpp_inner.id;
 	}
 	,__class__: nape_callbacks_CbType
+	,__properties__: {get_constraints:"get_constraints",get_interactors:"get_interactors",get_userData:"get_userData",get_id:"get_id"}
 };
 var nape_callbacks_CbTypeIterator = function() {
 	this.zpp_next = null;
@@ -8915,6 +10057,7 @@ nape_callbacks_CbTypeList.prototype = {
 		return this;
 	}
 	,__class__: nape_callbacks_CbTypeList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_callbacks_ConstraintCallback = function() {
 	nape_callbacks_Callback.call(this);
@@ -8934,6 +10077,7 @@ nape_callbacks_ConstraintCallback.prototype = $extend(nape_callbacks_Callback.pr
 		return ret;
 	}
 	,__class__: nape_callbacks_ConstraintCallback
+	,__properties__: $extend(nape_callbacks_Callback.prototype.__properties__,{get_constraint:"get_constraint"})
 });
 var nape_callbacks_ConstraintListener = function(event,options,handler,precedence) {
 	if(precedence == null) precedence = 0;
@@ -8997,6 +10141,7 @@ nape_callbacks_ConstraintListener.prototype = $extend(nape_callbacks_Listener.pr
 		return this.zpp_inner_zn.handler;
 	}
 	,__class__: nape_callbacks_ConstraintListener
+	,__properties__: $extend(nape_callbacks_Listener.prototype.__properties__,{set_handler:"set_handler",get_handler:"get_handler",set_options:"set_options",get_options:"get_options"})
 });
 var nape_callbacks_InteractionCallback = function() {
 	nape_callbacks_Callback.call(this);
@@ -9023,6 +10168,7 @@ nape_callbacks_InteractionCallback.prototype = $extend(nape_callbacks_Callback.p
 		return ret;
 	}
 	,__class__: nape_callbacks_InteractionCallback
+	,__properties__: $extend(nape_callbacks_Callback.prototype.__properties__,{get_arbiters:"get_arbiters",get_int2:"get_int2",get_int1:"get_int1"})
 });
 var nape_callbacks_InteractionListener = function(event,interactionType,options1,options2,handler,precedence) {
 	if(precedence == null) precedence = 0;
@@ -9171,12 +10317,14 @@ nape_callbacks_InteractionListener.prototype = $extend(nape_callbacks_Listener.p
 		return this.zpp_inner_zn.allowSleepingCallbacks;
 	}
 	,__class__: nape_callbacks_InteractionListener
+	,__properties__: $extend(nape_callbacks_Listener.prototype.__properties__,{set_allowSleepingCallbacks:"set_allowSleepingCallbacks",get_allowSleepingCallbacks:"get_allowSleepingCallbacks",set_handler:"set_handler",get_handler:"get_handler",set_interactionType:"set_interactionType",get_interactionType:"get_interactionType",set_options2:"set_options2",get_options2:"get_options2",set_options1:"set_options1",get_options1:"get_options1"})
 });
 var nape_callbacks_InteractionType = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "InteractionType" + " derp!";
 };
 $hxClasses["nape.callbacks.InteractionType"] = nape_callbacks_InteractionType;
 nape_callbacks_InteractionType.__name__ = ["nape","callbacks","InteractionType"];
+nape_callbacks_InteractionType.__properties__ = {get_ANY:"get_ANY",get_FLUID:"get_FLUID",get_SENSOR:"get_SENSOR",get_COLLISION:"get_COLLISION"}
 nape_callbacks_InteractionType.get_COLLISION = function() {
 	if(zpp_$nape_util_ZPP_$Flags.InteractionType_COLLISION == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -9538,12 +10686,14 @@ nape_callbacks_ListenerList.prototype = {
 		return this;
 	}
 	,__class__: nape_callbacks_ListenerList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_callbacks_ListenerType = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "ListenerType" + " derp!";
 };
 $hxClasses["nape.callbacks.ListenerType"] = nape_callbacks_ListenerType;
 nape_callbacks_ListenerType.__name__ = ["nape","callbacks","ListenerType"];
+nape_callbacks_ListenerType.__properties__ = {get_PRE:"get_PRE",get_INTERACTION:"get_INTERACTION",get_CONSTRAINT:"get_CONSTRAINT",get_BODY:"get_BODY"}
 nape_callbacks_ListenerType.get_BODY = function() {
 	if(zpp_$nape_util_ZPP_$Flags.ListenerType_BODY == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -9660,6 +10810,7 @@ nape_callbacks_OptionType.prototype = {
 		return "@{" + inc + " excluding " + exc + "}";
 	}
 	,__class__: nape_callbacks_OptionType
+	,__properties__: {get_excludes:"get_excludes",get_includes:"get_includes"}
 };
 var nape_callbacks_PreCallback = function() {
 	nape_callbacks_Callback.call(this);
@@ -9688,12 +10839,14 @@ nape_callbacks_PreCallback.prototype = $extend(nape_callbacks_Callback.prototype
 		return ret;
 	}
 	,__class__: nape_callbacks_PreCallback
+	,__properties__: $extend(nape_callbacks_Callback.prototype.__properties__,{get_swapped:"get_swapped",get_int2:"get_int2",get_int1:"get_int1",get_arbiter:"get_arbiter"})
 });
 var nape_callbacks_PreFlag = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "PreFlag" + " derp!";
 };
 $hxClasses["nape.callbacks.PreFlag"] = nape_callbacks_PreFlag;
 nape_callbacks_PreFlag.__name__ = ["nape","callbacks","PreFlag"];
+nape_callbacks_PreFlag.__properties__ = {get_IGNORE_ONCE:"get_IGNORE_ONCE",get_ACCEPT_ONCE:"get_ACCEPT_ONCE",get_IGNORE:"get_IGNORE",get_ACCEPT:"get_ACCEPT"}
 nape_callbacks_PreFlag.get_ACCEPT = function() {
 	if(zpp_$nape_util_ZPP_$Flags.PreFlag_ACCEPT == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -9889,6 +11042,7 @@ nape_callbacks_PreListener.prototype = $extend(nape_callbacks_Listener.prototype
 		return this.get_interactionType();
 	}
 	,__class__: nape_callbacks_PreListener
+	,__properties__: $extend(nape_callbacks_Listener.prototype.__properties__,{set_interactionType:"set_interactionType",get_interactionType:"get_interactionType",set_pure:"set_pure",get_pure:"get_pure",set_handler:"set_handler",get_handler:"get_handler",set_options2:"set_options2",get_options2:"get_options2",set_options1:"set_options1",get_options1:"get_options1"})
 });
 var nape_constraint_Constraint = function() {
 	this.debugDraw = true;
@@ -10068,6 +11222,7 @@ nape_constraint_Constraint.prototype = {
 		return this.zpp_inner.copy();
 	}
 	,__class__: nape_constraint_Constraint
+	,__properties__: {get_cbTypes:"get_cbTypes",set_removeOnBreak:"set_removeOnBreak",get_removeOnBreak:"get_removeOnBreak",set_breakUnderError:"set_breakUnderError",get_breakUnderError:"get_breakUnderError",set_breakUnderForce:"set_breakUnderForce",get_breakUnderForce:"get_breakUnderForce",set_maxError:"set_maxError",get_maxError:"get_maxError",set_maxForce:"set_maxForce",get_maxForce:"get_maxForce",set_damping:"set_damping",get_damping:"get_damping",set_frequency:"set_frequency",get_frequency:"get_frequency",set_stiff:"set_stiff",get_stiff:"get_stiff",set_ignore:"set_ignore",get_ignore:"get_ignore",set_active:"set_active",get_active:"get_active",get_isSleeping:"get_isSleeping",set_space:"set_space",get_space:"get_space",set_compound:"set_compound",get_compound:"get_compound",get_userData:"get_userData"}
 };
 var nape_constraint_AngleJoint = function(body1,body2,jointMin,jointMax,ratio) {
 	if(ratio == null) ratio = 1.0;
@@ -10215,6 +11370,7 @@ nape_constraint_AngleJoint.prototype = $extend(nape_constraint_Constraint.protot
 		if((this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != null && (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer)) lambda(this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer);
 	}
 	,__class__: nape_constraint_AngleJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_ratio:"set_ratio",get_ratio:"get_ratio",set_jointMax:"set_jointMax",get_jointMax:"get_jointMax",set_jointMin:"set_jointMin",get_jointMin:"get_jointMin",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_constraint_ConstraintIterator = function() {
 	this.zpp_next = null;
@@ -10503,6 +11659,7 @@ nape_constraint_ConstraintList.prototype = {
 		return this;
 	}
 	,__class__: nape_constraint_ConstraintList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_constraint_DistanceJoint = function(body1,body2,anchor1,anchor2,jointMin,jointMax) {
 	this.zpp_inner_zn = null;
@@ -10685,6 +11842,7 @@ nape_constraint_DistanceJoint.prototype = $extend(nape_constraint_Constraint.pro
 		if((this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != null && (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer)) lambda(this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer);
 	}
 	,__class__: nape_constraint_DistanceJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_jointMax:"set_jointMax",get_jointMax:"get_jointMax",set_jointMin:"set_jointMin",get_jointMin:"get_jointMin",set_anchor2:"set_anchor2",get_anchor2:"get_anchor2",set_anchor1:"set_anchor1",get_anchor1:"get_anchor1",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_constraint_LineJoint = function(body1,body2,anchor1,anchor2,direction,jointMin,jointMax) {
 	this.zpp_inner_zn = null;
@@ -10887,6 +12045,7 @@ nape_constraint_LineJoint.prototype = $extend(nape_constraint_Constraint.prototy
 		if((this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != null && (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer)) lambda(this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer);
 	}
 	,__class__: nape_constraint_LineJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_jointMax:"set_jointMax",get_jointMax:"get_jointMax",set_jointMin:"set_jointMin",get_jointMin:"get_jointMin",set_direction:"set_direction",get_direction:"get_direction",set_anchor2:"set_anchor2",get_anchor2:"get_anchor2",set_anchor1:"set_anchor1",get_anchor1:"get_anchor1",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_constraint_MotorJoint = function(body1,body2,rate,ratio) {
 	if(ratio == null) ratio = 1.0;
@@ -11011,6 +12170,7 @@ nape_constraint_MotorJoint.prototype = $extend(nape_constraint_Constraint.protot
 		if((this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != null && (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer)) lambda(this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer);
 	}
 	,__class__: nape_constraint_MotorJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_rate:"set_rate",get_rate:"get_rate",set_ratio:"set_ratio",get_ratio:"get_ratio",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_constraint_PivotJoint = function(body1,body2,anchor1,anchor2) {
 	this.zpp_inner_zn = null;
@@ -11149,6 +12309,7 @@ nape_constraint_PivotJoint.prototype = $extend(nape_constraint_Constraint.protot
 		if((this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != null && (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer)) lambda(this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer);
 	}
 	,__class__: nape_constraint_PivotJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_anchor2:"set_anchor2",get_anchor2:"get_anchor2",set_anchor1:"set_anchor1",get_anchor1:"get_anchor1",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_constraint_PulleyJoint = function(body1,body2,body3,body4,anchor1,anchor2,anchor3,anchor4,jointMin,jointMax,ratio) {
 	if(ratio == null) ratio = 1.0;
@@ -11457,6 +12618,7 @@ nape_constraint_PulleyJoint.prototype = $extend(nape_constraint_Constraint.proto
 		if((this.zpp_inner_zn.b4 == null?null:this.zpp_inner_zn.b4.outer) != null && (this.zpp_inner_zn.b4 == null?null:this.zpp_inner_zn.b4.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer) && (this.zpp_inner_zn.b4 == null?null:this.zpp_inner_zn.b4.outer) != (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) && (this.zpp_inner_zn.b4 == null?null:this.zpp_inner_zn.b4.outer) != (this.zpp_inner_zn.b3 == null?null:this.zpp_inner_zn.b3.outer)) lambda(this.zpp_inner_zn.b4 == null?null:this.zpp_inner_zn.b4.outer);
 	}
 	,__class__: nape_constraint_PulleyJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_ratio:"set_ratio",get_ratio:"get_ratio",set_jointMax:"set_jointMax",get_jointMax:"get_jointMax",set_jointMin:"set_jointMin",get_jointMin:"get_jointMin",set_anchor4:"set_anchor4",get_anchor4:"get_anchor4",set_anchor3:"set_anchor3",get_anchor3:"get_anchor3",set_anchor2:"set_anchor2",get_anchor2:"get_anchor2",set_anchor1:"set_anchor1",get_anchor1:"get_anchor1",set_body4:"set_body4",get_body4:"get_body4",set_body3:"set_body3",get_body3:"get_body3",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_constraint_UserConstraint = function(dimensions,velocityOnly) {
 	if(velocityOnly == null) velocityOnly = false;
@@ -11733,6 +12895,7 @@ nape_constraint_WeldJoint.prototype = $extend(nape_constraint_Constraint.prototy
 		if((this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != null && (this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer) != (this.zpp_inner_zn.b1 == null?null:this.zpp_inner_zn.b1.outer)) lambda(this.zpp_inner_zn.b2 == null?null:this.zpp_inner_zn.b2.outer);
 	}
 	,__class__: nape_constraint_WeldJoint
+	,__properties__: $extend(nape_constraint_Constraint.prototype.__properties__,{set_phase:"set_phase",get_phase:"get_phase",set_anchor2:"set_anchor2",get_anchor2:"get_anchor2",set_anchor1:"set_anchor1",get_anchor1:"get_anchor1",set_body2:"set_body2",get_body2:"get_body2",set_body1:"set_body1",get_body1:"get_body1"})
 });
 var nape_dynamics_Arbiter = function() {
 	this.zpp_inner = null;
@@ -11851,6 +13014,7 @@ nape_dynamics_Arbiter.prototype = {
 		}(this))).toString() + ")" + (this.zpp_inner.type == zpp_$nape_dynamics_ZPP_$Arbiter.COL?"[" + ["SD","DD"][this.zpp_inner.colarb.stat?0:1] + "]":"") + "<-" + this.get_state().toString();
 	}
 	,__class__: nape_dynamics_Arbiter
+	,__properties__: {get_state:"get_state",get_body2:"get_body2",get_body1:"get_body1",get_shape2:"get_shape2",get_shape1:"get_shape1",get_fluidArbiter:"get_fluidArbiter",get_collisionArbiter:"get_collisionArbiter",get_type:"get_type",get_isSleeping:"get_isSleeping"}
 };
 var nape_dynamics_ArbiterIterator = function() {
 	this.zpp_next = null;
@@ -12152,12 +13316,14 @@ nape_dynamics_ArbiterList.prototype = {
 		return this;
 	}
 	,__class__: nape_dynamics_ArbiterList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_dynamics_ArbiterType = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "ArbiterType" + " derp!";
 };
 $hxClasses["nape.dynamics.ArbiterType"] = nape_dynamics_ArbiterType;
 nape_dynamics_ArbiterType.__name__ = ["nape","dynamics","ArbiterType"];
+nape_dynamics_ArbiterType.__properties__ = {get_FLUID:"get_FLUID",get_SENSOR:"get_SENSOR",get_COLLISION:"get_COLLISION"}
 nape_dynamics_ArbiterType.get_COLLISION = function() {
 	if(zpp_$nape_util_ZPP_$Flags.ArbiterType_COLLISION == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -12625,6 +13791,7 @@ nape_dynamics_CollisionArbiter.prototype = $extend(nape_dynamics_Arbiter.prototy
 		return this.get_rollingFriction();
 	}
 	,__class__: nape_dynamics_CollisionArbiter
+	,__properties__: $extend(nape_dynamics_Arbiter.prototype.__properties__,{set_rollingFriction:"set_rollingFriction",get_rollingFriction:"get_rollingFriction",set_staticFriction:"set_staticFriction",get_staticFriction:"get_staticFriction",set_dynamicFriction:"set_dynamicFriction",get_dynamicFriction:"get_dynamicFriction",set_elasticity:"set_elasticity",get_elasticity:"get_elasticity",get_referenceEdge2:"get_referenceEdge2",get_referenceEdge1:"get_referenceEdge1",get_radius:"get_radius",get_normal:"get_normal",get_contacts:"get_contacts"})
 });
 var nape_dynamics_Contact = function() {
 	this.zpp_inner = null;
@@ -12700,6 +13867,7 @@ nape_dynamics_Contact.prototype = {
 		if(this.zpp_inner.arbiter == null || this.zpp_inner.arbiter.cleared) return "{object-pooled}"; else return "{Contact}";
 	}
 	,__class__: nape_dynamics_Contact
+	,__properties__: {get_friction:"get_friction",get_fresh:"get_fresh",get_position:"get_position",get_penetration:"get_penetration",get_arbiter:"get_arbiter"}
 };
 var nape_dynamics_ContactIterator = function() {
 	this.zpp_next = null;
@@ -13005,6 +14173,7 @@ nape_dynamics_ContactList.prototype = {
 		return this;
 	}
 	,__class__: nape_dynamics_ContactList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_dynamics_FluidArbiter = function() {
 	if(!zpp_$nape_dynamics_ZPP_$Arbiter.internal) throw "Error: Cannot instantiate FluidArbiter derp!";
@@ -13141,6 +14310,7 @@ nape_dynamics_FluidArbiter.prototype = $extend(nape_dynamics_Arbiter.prototype,{
 		return ret;
 	}
 	,__class__: nape_dynamics_FluidArbiter
+	,__properties__: $extend(nape_dynamics_Arbiter.prototype.__properties__,{set_overlap:"set_overlap",get_overlap:"get_overlap",set_position:"set_position",get_position:"get_position"})
 });
 var nape_dynamics_InteractionFilter = function(collisionGroup,collisionMask,sensorGroup,sensorMask,fluidGroup,fluidMask) {
 	if(fluidMask == null) fluidMask = -1;
@@ -13278,6 +14448,7 @@ nape_dynamics_InteractionFilter.prototype = {
 		return "{ collision: " + StringTools.hex(this.zpp_inner.collisionGroup,8) + "~" + StringTools.hex(this.zpp_inner.collisionMask,8) + " sensor: " + StringTools.hex(this.zpp_inner.sensorGroup,8) + "~" + StringTools.hex(this.zpp_inner.sensorMask,8) + " fluid: " + StringTools.hex(this.zpp_inner.fluidGroup,8) + "~" + StringTools.hex(this.zpp_inner.fluidMask,8) + " }";
 	}
 	,__class__: nape_dynamics_InteractionFilter
+	,__properties__: {set_fluidMask:"set_fluidMask",get_fluidMask:"get_fluidMask",set_fluidGroup:"set_fluidGroup",get_fluidGroup:"get_fluidGroup",set_sensorMask:"set_sensorMask",get_sensorMask:"get_sensorMask",set_sensorGroup:"set_sensorGroup",get_sensorGroup:"get_sensorGroup",set_collisionMask:"set_collisionMask",get_collisionMask:"get_collisionMask",set_collisionGroup:"set_collisionGroup",get_collisionGroup:"get_collisionGroup",get_shapes:"get_shapes",get_userData:"get_userData"}
 };
 var nape_dynamics_InteractionGroup = function(ignore) {
 	if(ignore == null) ignore = false;
@@ -13325,6 +14496,7 @@ nape_dynamics_InteractionGroup.prototype = {
 		return ret;
 	}
 	,__class__: nape_dynamics_InteractionGroup
+	,__properties__: {get_groups:"get_groups",get_interactors:"get_interactors",set_ignore:"set_ignore",get_ignore:"get_ignore",set_group:"set_group",get_group:"get_group"}
 };
 var nape_dynamics_InteractionGroupIterator = function() {
 	this.zpp_next = null;
@@ -13613,6 +14785,7 @@ nape_dynamics_InteractionGroupList.prototype = {
 		return this;
 	}
 	,__class__: nape_dynamics_InteractionGroupList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_geom_AABB = function(x,y,width,height) {
 	if(height == null) height = 0;
@@ -13844,6 +15017,7 @@ nape_geom_AABB.prototype = {
 		return this.zpp_inner.toString();
 	}
 	,__class__: nape_geom_AABB
+	,__properties__: {set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x",set_max:"set_max",get_max:"get_max",set_min:"set_min",get_min:"get_min"}
 };
 var nape_geom_ConvexResult = function() {
 	this.zpp_inner = null;
@@ -13887,6 +15061,7 @@ nape_geom_ConvexResult.prototype = {
 		}(this)) + " }";
 	}
 	,__class__: nape_geom_ConvexResult
+	,__properties__: {get_shape:"get_shape",get_toi:"get_toi",get_position:"get_position",get_normal:"get_normal"}
 };
 var nape_geom_ConvexResultIterator = function() {
 	this.zpp_next = null;
@@ -14175,6 +15350,7 @@ nape_geom_ConvexResultList.prototype = {
 		return this;
 	}
 	,__class__: nape_geom_ConvexResultList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_geom_Geom = function() { };
 $hxClasses["nape.geom.Geom"] = nape_geom_Geom;
@@ -15669,6 +16845,7 @@ nape_geom_GeomPolyList.prototype = {
 		return this;
 	}
 	,__class__: nape_geom_GeomPolyList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_geom_GeomVertexIterator = function() {
 	if(!zpp_$nape_geom_ZPP_$GeomVertexIterator.internal) throw "Error: Cannot instantiate GeomVertexIterator";
@@ -16218,6 +17395,7 @@ nape_geom_Mat23.prototype = {
 		return this;
 	}
 	,__class__: nape_geom_Mat23
+	,__properties__: {get_determinant:"get_determinant",set_ty:"set_ty",get_ty:"get_ty",set_tx:"set_tx",get_tx:"get_tx",set_d:"set_d",get_d:"get_d",set_c:"set_c",get_c:"get_c",set_b:"set_b",get_b:"get_b",set_a:"set_a",get_a:"get_a"}
 };
 var nape_geom_MatMN = function(rows,cols) {
 	this.zpp_inner = null;
@@ -16322,6 +17500,7 @@ nape_geom_MatMN.prototype = {
 		return ret;
 	}
 	,__class__: nape_geom_MatMN
+	,__properties__: {get_cols:"get_cols",get_rows:"get_rows"}
 };
 var nape_geom_Ray = function(origin,direction) {
 	this.zpp_inner = null;
@@ -16429,6 +17608,7 @@ nape_geom_Ray.prototype = {
 		return ret;
 	}
 	,__class__: nape_geom_Ray
+	,__properties__: {set_maxDistance:"set_maxDistance",get_maxDistance:"get_maxDistance",set_direction:"set_direction",get_direction:"get_direction",set_origin:"set_origin",get_origin:"get_origin",get_userData:"get_userData"}
 };
 var nape_geom_RayResult = function() {
 	this.zpp_inner = null;
@@ -16477,6 +17657,7 @@ nape_geom_RayResult.prototype = {
 		}(this))) + " }";
 	}
 	,__class__: nape_geom_RayResult
+	,__properties__: {get_shape:"get_shape",get_inner:"get_inner",get_distance:"get_distance",get_normal:"get_normal"}
 };
 var nape_geom_RayResultIterator = function() {
 	this.zpp_next = null;
@@ -16765,6 +17946,7 @@ nape_geom_RayResultList.prototype = {
 		return this;
 	}
 	,__class__: nape_geom_RayResultList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_geom_Vec2 = function(x,y) {
 	if(y == null) y = 0;
@@ -17848,6 +19030,7 @@ nape_geom_Vec2.prototype = {
 		return this.zpp_inner.toString();
 	}
 	,__class__: nape_geom_Vec2
+	,__properties__: {set_angle:"set_angle",get_angle:"get_angle",set_length:"set_length",get_length:"get_length",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x"}
 };
 var nape_geom_Vec2Iterator = function() {
 	this.zpp_next = null;
@@ -18144,6 +19327,7 @@ nape_geom_Vec2List.prototype = {
 		return this;
 	}
 	,__class__: nape_geom_Vec2List
+	,__properties__: {get_length:"get_length"}
 };
 var nape_geom_Vec3 = function(x,y,z) {
 	if(z == null) z = 0;
@@ -18553,12 +19737,14 @@ nape_geom_Vec3.prototype = {
 		}(this)) + " }";
 	}
 	,__class__: nape_geom_Vec3
+	,__properties__: {set_length:"set_length",get_length:"get_length",set_z:"set_z",get_z:"get_z",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x"}
 };
 var nape_geom_Winding = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "Winding" + " derp!";
 };
 $hxClasses["nape.geom.Winding"] = nape_geom_Winding;
 nape_geom_Winding.__name__ = ["nape","geom","Winding"];
+nape_geom_Winding.__properties__ = {get_ANTICLOCKWISE:"get_ANTICLOCKWISE",get_CLOCKWISE:"get_CLOCKWISE",get_UNDEFINED:"get_UNDEFINED"}
 nape_geom_Winding.get_UNDEFINED = function() {
 	if(zpp_$nape_util_ZPP_$Flags.Winding_UNDEFINED == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -18664,6 +19850,7 @@ nape_phys_Interactor.prototype = {
 		return "";
 	}
 	,__class__: nape_phys_Interactor
+	,__properties__: {get_cbTypes:"get_cbTypes",set_group:"set_group",get_group:"get_group",get_castCompound:"get_castCompound",get_castBody:"get_castBody",get_castShape:"get_castShape",get_userData:"get_userData",get_id:"get_id"}
 };
 var nape_phys_Body = function(type,position) {
 	this.debugDraw = true;
@@ -20312,6 +21499,7 @@ nape_phys_Body.prototype = $extend(nape_phys_Interactor.prototype,{
 		return (this.zpp_inner.world?"(space::world":"(" + (this.zpp_inner.type == zpp_$nape_util_ZPP_$Flags.id_BodyType_DYNAMIC?"dynamic":this.zpp_inner.type == zpp_$nape_util_ZPP_$Flags.id_BodyType_STATIC?"static":"kinematic")) + ")#" + this.zpp_inner_i.id;
 	}
 	,__class__: nape_phys_Body
+	,__properties__: $extend(nape_phys_Interactor.prototype.__properties__,{get_worldCOM:"get_worldCOM",get_localCOM:"get_localCOM",set_inertia:"set_inertia",get_inertia:"get_inertia",get_constraintInertia:"get_constraintInertia",set_inertiaMode:"set_inertiaMode",get_inertiaMode:"get_inertiaMode",set_gravMassScale:"set_gravMassScale",get_gravMassScale:"get_gravMassScale",set_gravMass:"set_gravMass",get_gravMass:"get_gravMass",set_gravMassMode:"set_gravMassMode",get_gravMassMode:"get_gravMassMode",set_mass:"set_mass",get_mass:"get_mass",get_constraintMass:"get_constraintMass",set_massMode:"set_massMode",get_massMode:"get_massMode",set_allowRotation:"set_allowRotation",get_allowRotation:"get_allowRotation",set_allowMovement:"set_allowMovement",get_allowMovement:"get_allowMovement",get_bounds:"get_bounds",set_torque:"set_torque",get_torque:"get_torque",set_kinAngVel:"set_kinAngVel",get_kinAngVel:"get_kinAngVel",set_angularVel:"set_angularVel",get_angularVel:"get_angularVel",set_rotation:"set_rotation",get_rotation:"get_rotation",get_constraintVelocity:"get_constraintVelocity",set_force:"set_force",get_force:"get_force",set_surfaceVel:"set_surfaceVel",get_surfaceVel:"get_surfaceVel",set_kinematicVel:"set_kinematicVel",get_kinematicVel:"get_kinematicVel",set_velocity:"set_velocity",get_velocity:"get_velocity",set_position:"set_position",get_position:"get_position",get_constraints:"get_constraints",get_isSleeping:"get_isSleeping",get_arbiters:"get_arbiters",set_space:"set_space",get_space:"get_space",set_compound:"set_compound",get_compound:"get_compound",get_shapes:"get_shapes",set_disableCCD:"set_disableCCD",get_disableCCD:"get_disableCCD",set_isBullet:"set_isBullet",get_isBullet:"get_isBullet",set_type:"set_type",get_type:"get_type"})
 });
 var nape_phys_BodyIterator = function() {
 	this.zpp_next = null;
@@ -20600,12 +21788,14 @@ nape_phys_BodyList.prototype = {
 		return this;
 	}
 	,__class__: nape_phys_BodyList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_phys_BodyType = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "BodyType" + " derp!";
 };
 $hxClasses["nape.phys.BodyType"] = nape_phys_BodyType;
 nape_phys_BodyType.__name__ = ["nape","phys","BodyType"];
+nape_phys_BodyType.__properties__ = {get_KINEMATIC:"get_KINEMATIC",get_DYNAMIC:"get_DYNAMIC",get_STATIC:"get_STATIC"}
 nape_phys_BodyType.get_STATIC = function() {
 	if(zpp_$nape_util_ZPP_$Flags.BodyType_STATIC == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -20837,6 +22027,7 @@ nape_phys_Compound.prototype = $extend(nape_phys_Interactor.prototype,{
 		return this;
 	}
 	,__class__: nape_phys_Compound
+	,__properties__: $extend(nape_phys_Interactor.prototype.__properties__,{set_space:"set_space",get_space:"get_space",set_compound:"set_compound",get_compound:"get_compound",get_compounds:"get_compounds",get_constraints:"get_constraints",get_bodies:"get_bodies"})
 });
 var nape_phys_CompoundIterator = function() {
 	this.zpp_next = null;
@@ -21125,6 +22316,7 @@ nape_phys_CompoundList.prototype = {
 		return this;
 	}
 	,__class__: nape_phys_CompoundList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_phys_FluidProperties = function(density,viscosity) {
 	if(viscosity == null) viscosity = 1;
@@ -21212,12 +22404,14 @@ nape_phys_FluidProperties.prototype = {
 		return "{ density: " + this.zpp_inner.density * 1000 + " viscosity: " + this.zpp_inner.viscosity + " gravity: " + Std.string(this.zpp_inner.wrap_gravity) + " }";
 	}
 	,__class__: nape_phys_FluidProperties
+	,__properties__: {set_gravity:"set_gravity",get_gravity:"get_gravity",set_viscosity:"set_viscosity",get_viscosity:"get_viscosity",set_density:"set_density",get_density:"get_density",get_shapes:"get_shapes",get_userData:"get_userData"}
 };
 var nape_phys_GravMassMode = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "GravMassMode" + " derp!";
 };
 $hxClasses["nape.phys.GravMassMode"] = nape_phys_GravMassMode;
 nape_phys_GravMassMode.__name__ = ["nape","phys","GravMassMode"];
+nape_phys_GravMassMode.__properties__ = {get_SCALED:"get_SCALED",get_FIXED:"get_FIXED",get_DEFAULT:"get_DEFAULT"}
 nape_phys_GravMassMode.get_DEFAULT = function() {
 	if(zpp_$nape_util_ZPP_$Flags.GravMassMode_DEFAULT == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -21280,6 +22474,7 @@ var nape_phys_InertiaMode = function() {
 };
 $hxClasses["nape.phys.InertiaMode"] = nape_phys_InertiaMode;
 nape_phys_InertiaMode.__name__ = ["nape","phys","InertiaMode"];
+nape_phys_InertiaMode.__properties__ = {get_FIXED:"get_FIXED",get_DEFAULT:"get_DEFAULT"}
 nape_phys_InertiaMode.get_DEFAULT = function() {
 	if(zpp_$nape_util_ZPP_$Flags.InertiaMode_DEFAULT == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -21607,12 +22802,14 @@ nape_phys_InteractorList.prototype = {
 		return this;
 	}
 	,__class__: nape_phys_InteractorList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_phys_MassMode = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "MassMode" + " derp!";
 };
 $hxClasses["nape.phys.MassMode"] = nape_phys_MassMode;
 nape_phys_MassMode.__name__ = ["nape","phys","MassMode"];
+nape_phys_MassMode.__properties__ = {get_FIXED:"get_FIXED",get_DEFAULT:"get_DEFAULT"}
 nape_phys_MassMode.get_DEFAULT = function() {
 	if(zpp_$nape_util_ZPP_$Flags.MassMode_DEFAULT == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -21801,6 +22998,7 @@ nape_phys_Material.prototype = {
 		return "{ elasticity: " + this.zpp_inner.elasticity + " dynamicFriction: " + this.zpp_inner.dynamicFriction + " staticFriction: " + this.zpp_inner.staticFriction + " density: " + this.zpp_inner.density * 1000 + " rollingFriction: " + this.zpp_inner.rollingFriction + " }";
 	}
 	,__class__: nape_phys_Material
+	,__properties__: {set_rollingFriction:"set_rollingFriction",get_rollingFriction:"get_rollingFriction",set_density:"set_density",get_density:"get_density",set_staticFriction:"set_staticFriction",get_staticFriction:"get_staticFriction",set_dynamicFriction:"set_dynamicFriction",get_dynamicFriction:"get_dynamicFriction",set_elasticity:"set_elasticity",get_elasticity:"get_elasticity",get_shapes:"get_shapes",get_userData:"get_userData"}
 };
 var nape_shape_Shape = function() {
 	this.zpp_inner = null;
@@ -22030,6 +23228,7 @@ nape_shape_Shape.prototype = $extend(nape_phys_Interactor.prototype,{
 		return ret + "#" + this.zpp_inner_i.id;
 	}
 	,__class__: nape_shape_Shape
+	,__properties__: $extend(nape_phys_Interactor.prototype.__properties__,{get_bounds:"get_bounds",set_sensorEnabled:"set_sensorEnabled",get_sensorEnabled:"get_sensorEnabled",set_fluidEnabled:"set_fluidEnabled",get_fluidEnabled:"get_fluidEnabled",set_fluidProperties:"set_fluidProperties",get_fluidProperties:"get_fluidProperties",set_filter:"set_filter",get_filter:"get_filter",set_material:"set_material",get_material:"get_material",get_angDrag:"get_angDrag",get_inertia:"get_inertia",get_area:"get_area",set_localCOM:"set_localCOM",get_localCOM:"get_localCOM",get_worldCOM:"get_worldCOM",get_castPolygon:"get_castPolygon",get_castCircle:"get_castCircle",set_body:"set_body",get_body:"get_body",get_type:"get_type"})
 });
 var nape_shape_Circle = function(radius,localCOM,material,filter) {
 	this.zpp_inner_zn = null;
@@ -22117,6 +23316,7 @@ nape_shape_Circle.prototype = $extend(nape_shape_Shape.prototype,{
 		return this.zpp_inner_zn.radius;
 	}
 	,__class__: nape_shape_Circle
+	,__properties__: $extend(nape_shape_Shape.prototype.__properties__,{set_radius:"set_radius",get_radius:"get_radius"})
 });
 var nape_shape_Edge = function() {
 	this.zpp_inner = null;
@@ -22185,6 +23385,7 @@ nape_shape_Edge.prototype = {
 		}
 	}
 	,__class__: nape_shape_Edge
+	,__properties__: {get_worldVertex2:"get_worldVertex2",get_worldVertex1:"get_worldVertex1",get_localVertex2:"get_localVertex2",get_localVertex1:"get_localVertex1",get_worldProjection:"get_worldProjection",get_localProjection:"get_localProjection",get_length:"get_length",get_worldNormal:"get_worldNormal",get_localNormal:"get_localNormal",get_polygon:"get_polygon"}
 };
 var nape_shape_EdgeIterator = function() {
 	this.zpp_next = null;
@@ -22473,6 +23674,7 @@ nape_shape_EdgeList.prototype = {
 		return this;
 	}
 	,__class__: nape_shape_EdgeList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_shape_Polygon = function(localVerts,material,filter) {
 	this.zpp_inner_zn = null;
@@ -22699,6 +23901,7 @@ nape_shape_Polygon.prototype = $extend(nape_shape_Shape.prototype,{
 		return this.zpp_inner_zn.valid();
 	}
 	,__class__: nape_shape_Polygon
+	,__properties__: $extend(nape_shape_Shape.prototype.__properties__,{get_edges:"get_edges",get_worldVerts:"get_worldVerts",get_localVerts:"get_localVerts"})
 });
 var nape_shape_ShapeIterator = function() {
 	this.zpp_next = null;
@@ -22987,12 +24190,14 @@ nape_shape_ShapeList.prototype = {
 		return this;
 	}
 	,__class__: nape_shape_ShapeList
+	,__properties__: {get_length:"get_length"}
 };
 var nape_shape_ShapeType = function() {
 	if(!zpp_$nape_util_ZPP_$Flags.internal) throw "Error: Cannot instantiate " + "ShapeType" + " derp!";
 };
 $hxClasses["nape.shape.ShapeType"] = nape_shape_ShapeType;
 nape_shape_ShapeType.__name__ = ["nape","shape","ShapeType"];
+nape_shape_ShapeType.__properties__ = {get_POLYGON:"get_POLYGON",get_CIRCLE:"get_CIRCLE"}
 nape_shape_ShapeType.get_CIRCLE = function() {
 	if(zpp_$nape_util_ZPP_$Flags.ShapeType_CIRCLE == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -23038,6 +24243,7 @@ var nape_shape_ValidationResult = function() {
 };
 $hxClasses["nape.shape.ValidationResult"] = nape_shape_ValidationResult;
 nape_shape_ValidationResult.__name__ = ["nape","shape","ValidationResult"];
+nape_shape_ValidationResult.__properties__ = {get_SELF_INTERSECTING:"get_SELF_INTERSECTING",get_CONCAVE:"get_CONCAVE",get_DEGENERATE:"get_DEGENERATE",get_VALID:"get_VALID"}
 nape_shape_ValidationResult.get_VALID = function() {
 	if(zpp_$nape_util_ZPP_$Flags.ValidationResult_VALID == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -23117,6 +24323,7 @@ var nape_space_Broadphase = function() {
 };
 $hxClasses["nape.space.Broadphase"] = nape_space_Broadphase;
 nape_space_Broadphase.__name__ = ["nape","space","Broadphase"];
+nape_space_Broadphase.__properties__ = {get_SWEEP_AND_PRUNE:"get_SWEEP_AND_PRUNE",get_DYNAMIC_AABB_TREE:"get_DYNAMIC_AABB_TREE"}
 nape_space_Broadphase.get_DYNAMIC_AABB_TREE = function() {
 	if(zpp_$nape_util_ZPP_$Flags.Broadphase_DYNAMIC_AABB_TREE == null) {
 		zpp_$nape_util_ZPP_$Flags.internal = true;
@@ -23554,6 +24761,7 @@ nape_space_Space.prototype = {
 		return this.zpp_inner.rayMultiCast(ray,inner,filter,output);
 	}
 	,__class__: nape_space_Space
+	,__properties__: {get_elapsedTime:"get_elapsedTime",get_timeStamp:"get_timeStamp",get_listeners:"get_listeners",get_arbiters:"get_arbiters",get_world:"get_world",get_liveConstraints:"get_liveConstraints",get_constraints:"get_constraints",get_liveBodies:"get_liveBodies",get_bodies:"get_bodies",get_compounds:"get_compounds",set_worldLinearDrag:"set_worldLinearDrag",get_worldLinearDrag:"get_worldLinearDrag",set_worldAngularDrag:"set_worldAngularDrag",get_worldAngularDrag:"get_worldAngularDrag",set_sortContacts:"set_sortContacts",get_sortContacts:"get_sortContacts",get_broadphase:"get_broadphase",set_gravity:"set_gravity",get_gravity:"get_gravity",get_userData:"get_userData"}
 };
 var nape_util_Debug = function() {
 	this.cullingEnabled = false;
@@ -24261,6 +25469,7 @@ nape_util_Debug.prototype = {
 		if(coils == null) coils = 3;
 	}
 	,__class__: nape_util_Debug
+	,__properties__: {set_transform:"set_transform",get_transform:"get_transform",get_display:"get_display",set_bgColour:"set_bgColour",get_bgColour:"get_bgColour"}
 };
 var nape_util_ShapeDebug = function(width,height,bgColour) {
 	if(bgColour == null) bgColour = 3355443;
@@ -25739,6 +26948,336 @@ nape_util_ShapeDebug.prototype = $extend(nape_util_Debug.prototype,{
 	}
 	,__class__: nape_util_ShapeDebug
 });
+var openfl_IAssetCache = function() { };
+$hxClasses["openfl.IAssetCache"] = openfl_IAssetCache;
+openfl_IAssetCache.__name__ = ["openfl","IAssetCache"];
+openfl_IAssetCache.prototype = {
+	__class__: openfl_IAssetCache
+};
+var openfl_AssetCache = function() {
+	this.__enabled = true;
+	this.bitmapData = new haxe_ds_StringMap();
+	this.font = new haxe_ds_StringMap();
+	this.sound = new haxe_ds_StringMap();
+};
+$hxClasses["openfl.AssetCache"] = openfl_AssetCache;
+openfl_AssetCache.__name__ = ["openfl","AssetCache"];
+openfl_AssetCache.__interfaces__ = [openfl_IAssetCache];
+openfl_AssetCache.prototype = {
+	clear: function(prefix) {
+		if(prefix == null) {
+			this.bitmapData = new haxe_ds_StringMap();
+			this.font = new haxe_ds_StringMap();
+			this.sound = new haxe_ds_StringMap();
+		} else {
+			var keys = this.bitmapData.keys();
+			while( keys.hasNext() ) {
+				var key = keys.next();
+				if(StringTools.startsWith(key,prefix)) this.bitmapData.remove(key);
+			}
+			var keys1 = this.font.keys();
+			while( keys1.hasNext() ) {
+				var key1 = keys1.next();
+				if(StringTools.startsWith(key1,prefix)) this.font.remove(key1);
+			}
+			var keys2 = this.sound.keys();
+			while( keys2.hasNext() ) {
+				var key2 = keys2.next();
+				if(StringTools.startsWith(key2,prefix)) this.sound.remove(key2);
+			}
+		}
+	}
+	,getBitmapData: function(id) {
+		return this.bitmapData.get(id);
+	}
+	,getFont: function(id) {
+		return this.font.get(id);
+	}
+	,getSound: function(id) {
+		return this.sound.get(id);
+	}
+	,hasBitmapData: function(id) {
+		return this.bitmapData.exists(id);
+	}
+	,hasFont: function(id) {
+		return this.font.exists(id);
+	}
+	,hasSound: function(id) {
+		return this.sound.exists(id);
+	}
+	,removeBitmapData: function(id) {
+		return this.bitmapData.remove(id);
+	}
+	,removeFont: function(id) {
+		return this.font.remove(id);
+	}
+	,removeSound: function(id) {
+		return this.sound.remove(id);
+	}
+	,setBitmapData: function(id,bitmapData) {
+		this.bitmapData.set(id,bitmapData);
+	}
+	,setFont: function(id,font) {
+		this.font.set(id,font);
+	}
+	,setSound: function(id,sound) {
+		this.sound.set(id,sound);
+	}
+	,get_enabled: function() {
+		return this.__enabled;
+	}
+	,set_enabled: function(value) {
+		return this.__enabled = value;
+	}
+	,__class__: openfl_AssetCache
+	,__properties__: {set_enabled:"set_enabled",get_enabled:"get_enabled"}
+};
+var openfl_Assets = function() { };
+$hxClasses["openfl.Assets"] = openfl_Assets;
+openfl_Assets.__name__ = ["openfl","Assets"];
+openfl_Assets.addEventListener = function(type,listener,useCapture,priority,useWeakReference) {
+	if(useWeakReference == null) useWeakReference = false;
+	if(priority == null) priority = 0;
+	if(useCapture == null) useCapture = false;
+	openfl_Assets.dispatcher.addEventListener(type,listener,useCapture,priority,useWeakReference);
+};
+openfl_Assets.dispatchEvent = function(event) {
+	return openfl_Assets.dispatcher.dispatchEvent(event);
+};
+openfl_Assets.exists = function(id,type) {
+	return lime_Assets.exists(id,type);
+};
+openfl_Assets.getBitmapData = function(id,useCache) {
+	if(useCache == null) useCache = true;
+	if(useCache && openfl_Assets.cache.get_enabled() && openfl_Assets.cache.hasBitmapData(id)) {
+		var bitmapData = openfl_Assets.cache.getBitmapData(id);
+		if(openfl_Assets.isValidBitmapData(bitmapData)) return bitmapData;
+	}
+	var image = lime_Assets.getImage(id,false);
+	if(image != null) {
+		var bitmapData1 = openfl_display_BitmapData.fromImage(image);
+		if(useCache && openfl_Assets.cache.get_enabled()) openfl_Assets.cache.setBitmapData(id,bitmapData1);
+		return bitmapData1;
+	}
+	return null;
+};
+openfl_Assets.getBytes = function(id) {
+	return lime_Assets.getBytes(id);
+};
+openfl_Assets.getFont = function(id,useCache) {
+	if(useCache == null) useCache = true;
+	if(useCache && openfl_Assets.cache.get_enabled() && openfl_Assets.cache.hasFont(id)) return openfl_Assets.cache.getFont(id);
+	var font = lime_Assets.getFont(id,false);
+	if(font != null) return font;
+	return new openfl_text_Font();
+};
+openfl_Assets.getLibrary = function(name) {
+	if(name == null || name == "") name = "default";
+	return lime_Assets.libraries.get(name);
+};
+openfl_Assets.getMovieClip = function(id) {
+	var libraryName = id.substring(0,id.indexOf(":"));
+	var symbolName;
+	var pos = id.indexOf(":") + 1;
+	symbolName = HxOverrides.substr(id,pos,null);
+	var library = openfl_Assets.getLibrary(libraryName);
+	if(library != null) {
+		if(library.exists(symbolName,"MOVIE_CLIP")) {
+			if(library.isLocal(symbolName,"MOVIE_CLIP")) return library.getMovieClip(symbolName); else haxe_Log.trace("[openfl.Assets] MovieClip asset \"" + id + "\" exists, but only asynchronously",{ fileName : "Assets.hx", lineNumber : 207, className : "openfl.Assets", methodName : "getMovieClip"});
+		} else haxe_Log.trace("[openfl.Assets] There is no MovieClip asset with an ID of \"" + id + "\"",{ fileName : "Assets.hx", lineNumber : 213, className : "openfl.Assets", methodName : "getMovieClip"});
+	} else haxe_Log.trace("[openfl.Assets] There is no asset library named \"" + libraryName + "\"",{ fileName : "Assets.hx", lineNumber : 219, className : "openfl.Assets", methodName : "getMovieClip"});
+	return null;
+};
+openfl_Assets.getMusic = function(id,useCache) {
+	if(useCache == null) useCache = true;
+	var path = lime_Assets.getPath(id);
+	if(path != null) return new openfl_media_Sound(new openfl_net_URLRequest(path));
+	return null;
+};
+openfl_Assets.getPath = function(id) {
+	return lime_Assets.getPath(id);
+};
+openfl_Assets.getSound = function(id,useCache) {
+	if(useCache == null) useCache = true;
+	if(useCache && openfl_Assets.cache.get_enabled() && openfl_Assets.cache.hasSound(id)) {
+		var sound = openfl_Assets.cache.getSound(id);
+		if(openfl_Assets.isValidSound(sound)) return sound;
+	}
+	var path = lime_Assets.getPath(id);
+	if(path != null) return new openfl_media_Sound(new openfl_net_URLRequest(path));
+	return null;
+};
+openfl_Assets.getText = function(id) {
+	return lime_Assets.getText(id);
+};
+openfl_Assets.hasEventListener = function(type) {
+	return openfl_Assets.dispatcher.hasEventListener(type);
+};
+openfl_Assets.isLocal = function(id,type,useCache) {
+	if(useCache == null) useCache = true;
+	if(useCache && openfl_Assets.cache.get_enabled()) {
+		if(type == "IMAGE" || type == null) {
+			if(openfl_Assets.cache.hasBitmapData(id)) return true;
+		}
+		if(type == "FONT" || type == null) {
+			if(openfl_Assets.cache.hasFont(id)) return true;
+		}
+		if(type == "SOUND" || type == "MUSIC" || type == null) {
+			if(openfl_Assets.cache.hasSound(id)) return true;
+		}
+	}
+	var libraryName = id.substring(0,id.indexOf(":"));
+	var symbolName;
+	var pos = id.indexOf(":") + 1;
+	symbolName = HxOverrides.substr(id,pos,null);
+	var library = openfl_Assets.getLibrary(libraryName);
+	if(library != null) return library.isLocal(symbolName,type);
+	return false;
+};
+openfl_Assets.isValidBitmapData = function(bitmapData) {
+	return bitmapData != null;
+	return true;
+};
+openfl_Assets.isValidSound = function(sound) {
+	return true;
+};
+openfl_Assets.list = function(type) {
+	return lime_Assets.list(type);
+};
+openfl_Assets.loadBitmapData = function(id,handler,useCache) {
+	if(useCache == null) useCache = true;
+	if(useCache && openfl_Assets.cache.get_enabled() && openfl_Assets.cache.hasBitmapData(id)) {
+		var bitmapData = openfl_Assets.cache.getBitmapData(id);
+		if(openfl_Assets.isValidBitmapData(bitmapData)) {
+			handler(bitmapData);
+			return;
+		}
+	}
+	lime_Assets.loadImage(id,function(image) {
+		if(image != null) {
+			var bitmapData1 = openfl_display_BitmapData.fromImage(image);
+			if(useCache && openfl_Assets.cache.get_enabled()) openfl_Assets.cache.setBitmapData(id,bitmapData1);
+			handler(bitmapData1);
+		}
+	},false);
+};
+openfl_Assets.loadBytes = function(id,handler) {
+	var libraryName = id.substring(0,id.indexOf(":"));
+	var symbolName;
+	var pos = id.indexOf(":") + 1;
+	symbolName = HxOverrides.substr(id,pos,null);
+	var library = openfl_Assets.getLibrary(libraryName);
+	if(library != null) {
+		if(library.exists(symbolName,"BINARY")) {
+			library.loadBytes(symbolName,handler);
+			return;
+		} else haxe_Log.trace("[openfl.Assets] There is no String or ByteArray asset with an ID of \"" + id + "\"",{ fileName : "Assets.hx", lineNumber : 532, className : "openfl.Assets", methodName : "loadBytes"});
+	} else haxe_Log.trace("[openfl.Assets] There is no asset library named \"" + libraryName + "\"",{ fileName : "Assets.hx", lineNumber : 538, className : "openfl.Assets", methodName : "loadBytes"});
+	handler(null);
+};
+openfl_Assets.loadFont = function(id,handler,useCache) {
+	if(useCache == null) useCache = true;
+	if(useCache && openfl_Assets.cache.get_enabled() && openfl_Assets.cache.hasFont(id)) {
+		handler(openfl_Assets.cache.getFont(id));
+		return;
+	}
+	var libraryName = id.substring(0,id.indexOf(":"));
+	var symbolName;
+	var pos = id.indexOf(":") + 1;
+	symbolName = HxOverrides.substr(id,pos,null);
+	var library = openfl_Assets.getLibrary(libraryName);
+	if(library != null) {
+		if(library.exists(symbolName,"FONT")) {
+			if(useCache && openfl_Assets.cache.get_enabled()) library.loadFont(symbolName,function(font) {
+				openfl_Assets.cache.setFont(id,font);
+				handler(font);
+			}); else library.loadFont(symbolName,handler);
+			return;
+		} else haxe_Log.trace("[openfl.Assets] There is no Font asset with an ID of \"" + id + "\"",{ fileName : "Assets.hx", lineNumber : 594, className : "openfl.Assets", methodName : "loadFont"});
+	} else haxe_Log.trace("[openfl.Assets] There is no asset library named \"" + libraryName + "\"",{ fileName : "Assets.hx", lineNumber : 600, className : "openfl.Assets", methodName : "loadFont"});
+	handler(null);
+};
+openfl_Assets.loadLibrary = function(name,handler) {
+	lime_Assets.loadLibrary(name,handler);
+};
+openfl_Assets.loadMusic = function(id,handler,useCache) {
+	if(useCache == null) useCache = true;
+	handler(openfl_Assets.getMusic(id,useCache));
+};
+openfl_Assets.loadMovieClip = function(id,handler) {
+	var libraryName = id.substring(0,id.indexOf(":"));
+	var symbolName;
+	var pos = id.indexOf(":") + 1;
+	symbolName = HxOverrides.substr(id,pos,null);
+	var library = openfl_Assets.getLibrary(libraryName);
+	if(library != null) {
+		if(library.exists(symbolName,"MOVIE_CLIP")) {
+			library.loadMovieClip(symbolName,handler);
+			return;
+		} else haxe_Log.trace("[openfl.Assets] There is no MovieClip asset with an ID of \"" + id + "\"",{ fileName : "Assets.hx", lineNumber : 678, className : "openfl.Assets", methodName : "loadMovieClip"});
+	} else haxe_Log.trace("[openfl.Assets] There is no asset library named \"" + libraryName + "\"",{ fileName : "Assets.hx", lineNumber : 684, className : "openfl.Assets", methodName : "loadMovieClip"});
+	handler(null);
+};
+openfl_Assets.loadSound = function(id,handler,useCache) {
+	if(useCache == null) useCache = true;
+	handler(openfl_Assets.getSound(id,useCache));
+};
+openfl_Assets.loadText = function(id,handler) {
+	lime_Assets.loadText(id,handler);
+};
+openfl_Assets.registerLibrary = function(name,library) {
+	lime_Assets.registerLibrary(name,library);
+};
+openfl_Assets.removeEventListener = function(type,listener,capture) {
+	if(capture == null) capture = false;
+	openfl_Assets.dispatcher.removeEventListener(type,listener,capture);
+};
+openfl_Assets.resolveClass = function(name) {
+	return Type.resolveClass(name);
+};
+openfl_Assets.resolveEnum = function(name) {
+	var value = Type.resolveEnum(name);
+	return value;
+};
+openfl_Assets.unloadLibrary = function(name) {
+	lime_Assets.unloadLibrary(name);
+};
+openfl_Assets.library_onEvent = function(library,type) {
+	if(type == "change") {
+		openfl_Assets.cache.clear();
+		openfl_Assets.dispatchEvent(new openfl_events_Event(openfl_events_Event.CHANGE));
+	}
+};
+var openfl_AssetLibrary = function() {
+	lime_AssetLibrary.call(this);
+};
+$hxClasses["openfl.AssetLibrary"] = openfl_AssetLibrary;
+openfl_AssetLibrary.__name__ = ["openfl","AssetLibrary"];
+openfl_AssetLibrary.__super__ = lime_AssetLibrary;
+openfl_AssetLibrary.prototype = $extend(lime_AssetLibrary.prototype,{
+	getMovieClip: function(id) {
+		return null;
+	}
+	,getMusic: function(id) {
+		return this.getSound(id);
+	}
+	,getSound: function(id) {
+		return null;
+	}
+	,loadMovieClip: function(id,handler) {
+		handler(this.getMovieClip(id));
+	}
+	,loadMusic: function(id,handler) {
+		handler(this.getMusic(id));
+	}
+	,loadSound: function(id,handler) {
+		handler(this.getSound(id));
+	}
+	,__class__: openfl_AssetLibrary
+});
+var openfl__$Assets_AssetType_$Impl_$ = function() { };
+$hxClasses["openfl._Assets.AssetType_Impl_"] = openfl__$Assets_AssetType_$Impl_$;
+openfl__$Assets_AssetType_$Impl_$.__name__ = ["openfl","_Assets","AssetType_Impl_"];
 var openfl_display_MovieClip = function() {
 	openfl_display_Sprite.call(this);
 	this.__currentFrame = 0;
@@ -25782,6 +27321,7 @@ openfl_display_MovieClip.prototype = $extend(openfl_display_Sprite.prototype,{
 		return this.__totalFrames;
 	}
 	,__class__: openfl_display_MovieClip
+	,__properties__: $extend(openfl_display_Sprite.prototype.__properties__,{get_totalFrames:"get_totalFrames",get_framesLoaded:"get_framesLoaded",get_currentLabels:"get_currentLabels",get_currentLabel:"get_currentLabel",get_currentFrameLabel:"get_currentFrameLabel",get_currentFrame:"get_currentFrame"})
 });
 var openfl_display_LoaderInfo = function() {
 	openfl_events_EventDispatcher.call(this);
@@ -26192,6 +27732,7 @@ openfl_Memory.setI32 = function(addr,v) {
 var openfl__$Vector_Vector_$Impl_$ = function() { };
 $hxClasses["openfl._Vector.Vector_Impl_"] = openfl__$Vector_Vector_$Impl_$;
 openfl__$Vector_Vector_$Impl_$.__name__ = ["openfl","_Vector","Vector_Impl_"];
+openfl__$Vector_Vector_$Impl_$.__properties__ = {set_fixed:"set_fixed",get_fixed:"get_fixed",set_length:"set_length",get_length:"get_length"}
 openfl__$Vector_Vector_$Impl_$._new = function(length,fixed) {
 	if(fixed == null) fixed = false;
 	if(length == null) length = 0;
@@ -28850,6 +30391,7 @@ openfl_geom_Rectangle.prototype = {
 		return p.clone();
 	}
 	,__class__: openfl_geom_Rectangle
+	,__properties__: {set_topLeft:"set_topLeft",get_topLeft:"get_topLeft",set_top:"set_top",get_top:"get_top",set_size:"set_size",get_size:"get_size",set_right:"set_right",get_right:"get_right",set_left:"set_left",get_left:"get_left",set_bottomRight:"set_bottomRight",get_bottomRight:"get_bottomRight",set_bottom:"set_bottom",get_bottom:"get_bottom"}
 };
 var openfl_geom_Point = function(x,y) {
 	if(y == null) y = 0;
@@ -28908,6 +30450,7 @@ openfl_geom_Point.prototype = {
 		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 	,__class__: openfl_geom_Point
+	,__properties__: {get_length:"get_length"}
 };
 var openfl__$internal_renderer_opengl_utils_GraphicsRenderer = function() { };
 $hxClasses["openfl._internal.renderer.opengl.utils.GraphicsRenderer"] = openfl__$internal_renderer_opengl_utils_GraphicsRenderer;
@@ -31883,6 +33426,7 @@ openfl_display_FrameLabel.prototype = $extend(openfl_events_EventDispatcher.prot
 		return this.__name;
 	}
 	,__class__: openfl_display_FrameLabel
+	,__properties__: {get_name:"get_name",get_frame:"get_frame"}
 });
 var openfl_display_GradientType = $hxClasses["openfl.display.GradientType"] = { __ename__ : true, __constructs__ : ["RADIAL","LINEAR"] };
 openfl_display_GradientType.RADIAL = ["RADIAL",0];
@@ -32387,6 +33931,7 @@ openfl_display_Shape.prototype = $extend(openfl_display_DisplayObject.prototype,
 		return this.__graphics;
 	}
 	,__class__: openfl_display_Shape
+	,__properties__: $extend(openfl_display_DisplayObject.prototype.__properties__,{get_graphics:"get_graphics"})
 });
 var openfl_display_SpreadMethod = $hxClasses["openfl.display.SpreadMethod"] = { __ename__ : true, __constructs__ : ["REPEAT","REFLECT","PAD"] };
 openfl_display_SpreadMethod.REPEAT = ["REPEAT",0];
@@ -32605,6 +34150,7 @@ openfl_display_Stage.prototype = $extend(openfl_display_Sprite.prototype,{
 		return value;
 	}
 	,__class__: openfl_display_Stage
+	,__properties__: $extend(openfl_display_Sprite.prototype.__properties__,{set_focus:"set_focus",get_focus:"get_focus",set_displayState:"set_displayState",set_color:"set_color",get_color:"get_color"})
 });
 var openfl_display_StageAlign = $hxClasses["openfl.display.StageAlign"] = { __ename__ : true, __constructs__ : ["TOP_RIGHT","TOP_LEFT","TOP","RIGHT","LEFT","BOTTOM_RIGHT","BOTTOM_LEFT","BOTTOM"] };
 openfl_display_StageAlign.TOP_RIGHT = ["TOP_RIGHT",0];
@@ -33092,6 +34638,7 @@ openfl_geom_ColorTransform.prototype = {
 		return new Float32Array([this.redMultiplier,0,0,0,this.redOffset / 255,0,this.greenMultiplier,0,0,this.greenOffset / 255,0,0,this.blueMultiplier,0,this.blueOffset / 255,0,0,0,this.alphaMultiplier,this.alphaOffset / 255]);
 	}
 	,__class__: openfl_geom_ColorTransform
+	,__properties__: {set_color:"set_color",get_color:"get_color"}
 };
 var openfl_geom_Transform = function(displayObject) {
 	this.colorTransform = new openfl_geom_ColorTransform();
@@ -33126,6 +34673,7 @@ openfl_geom_Transform.prototype = {
 		return value;
 	}
 	,__class__: openfl_geom_Transform
+	,__properties__: {set_matrix:"set_matrix",get_matrix:"get_matrix"}
 };
 var openfl_geom_Vector3D = function(x,y,z,w) {
 	if(w == null) w = 0;
@@ -33139,6 +34687,7 @@ var openfl_geom_Vector3D = function(x,y,z,w) {
 };
 $hxClasses["openfl.geom.Vector3D"] = openfl_geom_Vector3D;
 openfl_geom_Vector3D.__name__ = ["openfl","geom","Vector3D"];
+openfl_geom_Vector3D.__properties__ = {get_Z_AXIS:"get_Z_AXIS",get_Y_AXIS:"get_Y_AXIS",get_X_AXIS:"get_X_AXIS"}
 openfl_geom_Vector3D.X_AXIS = null;
 openfl_geom_Vector3D.Y_AXIS = null;
 openfl_geom_Vector3D.Z_AXIS = null;
@@ -33242,6 +34791,7 @@ openfl_geom_Vector3D.prototype = {
 		return this.x * this.x + this.y * this.y + this.z * this.z;
 	}
 	,__class__: openfl_geom_Vector3D
+	,__properties__: {get_lengthSquared:"get_lengthSquared",get_length:"get_length"}
 };
 var openfl_media_ID3Info = function() {
 };
@@ -33311,6 +34861,7 @@ openfl_media_Sound.prototype = $extend(openfl_events_EventDispatcher.prototype,{
 		}
 	}
 	,__class__: openfl_media_Sound
+	,__properties__: {get_id3:"get_id3"}
 });
 var openfl_media_SoundChannel = function(soundInstance) {
 	openfl_events_EventDispatcher.call(this,this);
@@ -33350,6 +34901,7 @@ openfl_media_SoundChannel.prototype = $extend(openfl_events_EventDispatcher.prot
 		this.dispatchEvent(new openfl_events_Event(openfl_events_Event.SOUND_COMPLETE));
 	}
 	,__class__: openfl_media_SoundChannel
+	,__properties__: {set_soundTransform:"set_soundTransform",get_soundTransform:"get_soundTransform",set_position:"set_position",get_position:"get_position"}
 });
 var openfl_media_SoundLoaderContext = function(bufferTime,checkPolicyFile) {
 	if(checkPolicyFile == null) checkPolicyFile = false;
@@ -60885,7 +62437,7 @@ zpp_$nape_space_ZPP_$Space.prototype = {
 						var miny = aabb.miny;
 						var maxx = aabb.maxx;
 						var maxy = aabb.maxy;
-						var count = angvel * dt * s.sweepCoef * 0.00833333333333333322 | 0;
+						var count = angvel * dt * s.sweepCoef * 0.0083333333333333332 | 0;
 						if(count > 8) count = 8;
 						var anginc = angvel * dt / count;
 						cur.sweepIntegrate(dt);
@@ -60947,7 +62499,7 @@ zpp_$nape_space_ZPP_$Space.prototype = {
 						var miny1 = aabb1.miny;
 						var maxx1 = aabb1.maxx;
 						var maxy1 = aabb1.maxy;
-						var count1 = angvel1 * dt * s1.sweepCoef * 0.00833333333333333322 | 0;
+						var count1 = angvel1 * dt * s1.sweepCoef * 0.0083333333333333332 | 0;
 						if(count1 > 8) count1 = 8;
 						var anginc1 = angvel1 * dt / count1;
 						cur1.sweepIntegrate(dt);
@@ -75937,6 +77489,9 @@ if(window.createjs != null) createjs.Sound.alternateExtensions = ["ogg","mp3","w
 openfl_display_DisplayObject.__instanceCount = 0;
 openfl_display_DisplayObject.__worldRenderDirty = 0;
 openfl_display_DisplayObject.__worldTransformDirty = 0;
+Main.NUM_COLUMNS = 10;
+Main.NUM_ROWS = 10;
+haxe_ds_ObjectMap.count = 0;
 js_Boot.__toStr = {}.toString;
 lime_Assets.cache = new lime_AssetCache();
 lime_Assets.libraries = new haxe_ds_StringMap();
@@ -76972,6 +78527,12 @@ lime_utils_ByteArray.lime_byte_array_overwrite_file = lime_system_System.load("l
 lime_utils_ByteArray.lime_byte_array_read_file = lime_system_System.load("lime","lime_byte_array_read_file",1);
 lime_utils_ByteArray.lime_lzma_decode = lime_system_System.load("lime","lime_lzma_decode",1);
 lime_utils_ByteArray.lime_lzma_encode = lime_system_System.load("lime","lime_lzma_encode",1);
+motion_actuators_SimpleActuator.actuators = new Array();
+motion_actuators_SimpleActuator.actuatorsLength = 0;
+motion_actuators_SimpleActuator.addedEvent = false;
+motion_Actuate.defaultActuator = motion_actuators_SimpleActuator;
+motion_Actuate.defaultEase = motion_easing_Expo.get_easeOut();
+motion_Actuate.targetLibraries = new haxe_ds_ObjectMap();
 nape_Config.epsilon = 1e-8;
 nape_Config.fluidAngularDragFriction = 2.5;
 nape_Config.fluidAngularDrag = 100;
@@ -77015,6 +78576,16 @@ nape_phys_CompoundIterator.zpp_pool = null;
 nape_phys_InteractorIterator.zpp_pool = null;
 nape_shape_EdgeIterator.zpp_pool = null;
 nape_shape_ShapeIterator.zpp_pool = null;
+openfl_Assets.cache = new openfl_AssetCache();
+openfl_Assets.dispatcher = new openfl_events_EventDispatcher();
+openfl__$Assets_AssetType_$Impl_$.BINARY = "BINARY";
+openfl__$Assets_AssetType_$Impl_$.FONT = "FONT";
+openfl__$Assets_AssetType_$Impl_$.IMAGE = "IMAGE";
+openfl__$Assets_AssetType_$Impl_$.MOVIE_CLIP = "MOVIE_CLIP";
+openfl__$Assets_AssetType_$Impl_$.MUSIC = "MUSIC";
+openfl__$Assets_AssetType_$Impl_$.SOUND = "SOUND";
+openfl__$Assets_AssetType_$Impl_$.TEMPLATE = "TEMPLATE";
+openfl__$Assets_AssetType_$Impl_$.TEXT = "TEXT";
 openfl_system_ApplicationDomain.currentDomain = new openfl_system_ApplicationDomain(null);
 openfl_geom_Matrix.__identity = new openfl_geom_Matrix();
 openfl_Lib.current = new openfl_display_MovieClip();
